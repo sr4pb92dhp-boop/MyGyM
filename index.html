@@ -121,6 +121,23 @@ header{
 }
 .done.on{background:var(--day);border-color:var(--day);color:#fff}
 
+.edit{display:flex;gap:6px;margin-top:8px}
+.ebtn{
+  flex:1;background:transparent;border:1px dashed var(--line);color:var(--mute);
+  border-radius:8px;padding:7px;font-size:12px;font-weight:500;cursor:pointer;
+  font-family:-apple-system,sans-serif;
+}
+.ebtn:active{background:var(--surface2)}
+.ebtn.mv{flex:0 0 42px;font-size:15px;line-height:1}
+.ebtn.mv:disabled{opacity:.25}
+.ebtn.del{flex:0 0 42px;color:#C8102E;border-color:rgba(200,16,46,.35)}
+.board-num{cursor:pointer}
+.addex{
+  width:100%;margin:6px 0 20px;background:transparent;border:1px dashed var(--line);
+  color:var(--mute);border-radius:12px;padding:14px;font-size:14px;font-weight:600;
+  cursor:pointer;font-family:-apple-system,sans-serif;
+}
+.addex:active{background:var(--surface)}
 .hint{padding:9px 16px;font-size:11px;color:var(--mute);border-top:1px solid rgba(51,59,71,.5)}
 .hint b{color:var(--chalk);font-weight:600}
 
@@ -217,11 +234,44 @@ const DAYS = [
 ]},
 ];
 
+let custom = {vars:{}, ex:{}, order:{}};   // добавленное пользователем
 let day = 0, gym = DAYS[0].gym;
 let state = {};   // ключ d:e -> {v, sets:[{w,r,done}]}
 let last  = {};   // прошлая сессия
 const $ = s => document.querySelector(s);
 
+function applyCustom(){
+  Object.keys(custom.ex||{}).forEach(d=>{
+    (custom.ex[d]||[]).forEach(x=>{
+      const exists = DAYS[d].ex.some(q=>q[0]===x[0]);
+      if(!exists) DAYS[d].ex.push([x[0],x[1],x[2],x[3].map(v=>[v[0],v[1].slice()]),true]);
+    });
+  });
+  Object.keys(custom.order||{}).forEach(d=>{
+    const want = custom.order[d]; if(!want) return;
+    const byName = {}; DAYS[d].ex.forEach(x=>byName[x[0]] = x);
+    const sorted = [];
+    want.forEach(n=>{ if(byName[n]){ sorted.push(byName[n]); delete byName[n]; } });
+    DAYS[d].ex.forEach(x=>{ if(byName[x[0]]) sorted.push(x); });
+    if(sorted.length === DAYS[d].ex.length) DAYS[d].ex = sorted;
+  });
+  Object.keys(custom.vars||{}).forEach(k=>{
+    const [d,e] = k.split(":").map(Number);
+    if(!DAYS[d] || !DAYS[d].ex[e]) return;
+    (custom.vars[k]||[]).forEach(v=>{
+      if(!DAYS[d].ex[e][3].some(q=>q[0]===v[0])) DAYS[d].ex[e][3].push([v[0],v[1].slice()]);
+    });
+  });
+}
+function saveCustom(){
+  try{ localStorage.setItem("gym:custom", JSON.stringify(custom)); }catch(e){}
+}
+function askNum(msg, def){
+  const r = prompt(msg, def===undefined?"":String(def));
+  if(r===null) return null;
+  const n = parseFloat(String(r).replace(",","."));
+  return isNaN(n) ? 0 : n;
+}
 function key(d,e){ return d+":"+e }
 function cur(d,e){
   const k = key(d,e);
@@ -269,7 +319,7 @@ function drawList(){
     }).join("");
 
     const board = isPlank ? "" : `<div class="board">
-        <span class="board-num">${w||"—"}</span><span class="board-unit">кг</span>
+        <span class="board-num" onclick="editW(${e})">${w||"—"}</span><span class="board-unit">кг</span>
         <span class="board-tag">рекомендую<br>${GYMS[gym]}</span>
       </div>`;
 
@@ -280,11 +330,17 @@ function drawList(){
         <div class="slot"><span>${e+1}. ${slot}</span><span class="scheme">${scheme}</span></div>
         <select class="pick" ${vars.length<2?'disabled':''} onchange="setVar(${e},this.value)">${opts}</select>
         ${board}
+        <div class="edit">
+          <button class="ebtn mv" onclick="move(${e},-1)" ${e===0?'disabled':''}>↑</button>
+          <button class="ebtn mv" onclick="move(${e},1)" ${e===DAYS[day].ex.length-1?'disabled':''}>↓</button>
+          <button class="ebtn" onclick="addVar(${e})">＋ вариант</button>
+          ${vars.length>1 && vars[st.v][2] ? `<button class="ebtn del" onclick="delVar(${e})">✕</button>` : ""}
+        </div>
       </div>
       <div class="sets">${sets}</div>
       ${hint}
     </div>`;
-  }).join("");
+  }).join("") + `<button class="addex" onclick="addEx()">＋ добавить упражнение</button>`;
   drawStat();
 }
 
@@ -299,6 +355,87 @@ function drawStat(){
   });
   $("#stat").innerHTML = `<b>${done}</b>/${all} подходов${vol?` · тоннаж <b>${Math.round(vol)}</b> кг`:""}`;
 }
+
+window.move = function(e, dir){
+  const list = DAYS[day].ex;
+  const t = e + dir;
+  if(t < 0 || t >= list.length) return;
+
+  // меняем местами сами упражнения
+  [list[e], list[t]] = [list[t], list[e]];
+
+  // и всё, что к ним привязано: заполненные подходы и прошлая тренировка
+  [[state,'state'],[last,'last']].forEach(([obj])=>{
+    const a = obj[key(day,e)], b = obj[key(day,t)];
+    if(a===undefined && b===undefined) return;
+    if(b===undefined) delete obj[key(day,e)]; else obj[key(day,e)] = b;
+    if(a===undefined) delete obj[key(day,t)]; else obj[key(day,t)] = a;
+  });
+
+  // custom-варианты тоже переезжают вместе с упражнением
+  const ca = custom.vars[key(day,e)], cb = custom.vars[key(day,t)];
+  if(ca!==undefined || cb!==undefined){
+    if(cb===undefined) delete custom.vars[key(day,e)]; else custom.vars[key(day,e)] = cb;
+    if(ca===undefined) delete custom.vars[key(day,t)]; else custom.vars[key(day,t)] = ca;
+  }
+
+  custom.order = custom.order || {};
+  custom.order[day] = list.map(x=>x[0]);
+  saveCustom(); save(true); drawList();
+};
+
+window.addVar = function(e){
+  const name = prompt("Название упражнения:");
+  if(!name || !name.trim()) return;
+  const w = askNum("Рабочий вес, кг (0 — если без веса):", 0);
+  if(w===null) return;
+  const k = key(day,e);
+  custom.vars[k] = custom.vars[k] || [];
+  custom.vars[k].push([name.trim(), [w,w,w], true]);
+  DAYS[day].ex[e][3].push([name.trim(), [w,w,w], true]);
+  cur(day,e).v = DAYS[day].ex[e][3].length - 1;
+  saveCustom(); drawList(); toast("Вариант добавлен");
+};
+
+window.delVar = function(e){
+  const st = cur(day,e);
+  const v  = DAYS[day].ex[e][3][st.v];
+  if(!v || !v[2]) return;
+  if(!confirm("Удалить «"+v[0]+"»?")) return;
+  DAYS[day].ex[e][3].splice(st.v,1);
+  const k = key(day,e);
+  custom.vars[k] = (custom.vars[k]||[]).filter(x=>x[0]!==v[0]);
+  st.v = 0; saveCustom(); drawList(); toast("Удалено");
+};
+
+window.editW = function(e){
+  const st = cur(day,e);
+  const v  = DAYS[day].ex[e][3][st.v];
+  const w  = askNum("Рабочий вес в зале «"+GYMS[gym]+"», кг:", v[1][gym]);
+  if(w===null) return;
+  v[1][gym] = w;
+  const k = key(day,e);
+  custom.vars[k] = custom.vars[k] || [];
+  const mine = custom.vars[k].find(x=>x[0]===v[0]);
+  if(mine){ mine[1][gym] = w; }
+  else { custom.vars[k].push([v[0], v[1].slice(), false, "w"]); }
+  saveCustom(); drawList(); toast("Вес обновлён");
+};
+
+window.addEx = function(){
+  const name = prompt("Название упражнения:");
+  if(!name || !name.trim()) return;
+  const scheme = prompt("Схема (например 3×12):", "3×12") || "3×12";
+  let n = parseInt(scheme); if(!n || n<1 || n>8) n = 3;
+  const w = askNum("Рабочий вес, кг (0 — если без веса):", 0);
+  if(w===null) return;
+  const item = [name.trim(), scheme, n, [[name.trim(),[w,w,w],true]]];
+  custom.ex[day] = custom.ex[day] || [];
+  custom.ex[day].push(item);
+  DAYS[day].ex.push([item[0],item[1],item[2],item[3].map(v=>[v[0],v[1].slice(),true]),true]);
+  if(custom.order && custom.order[day]) custom.order[day].push(item[0]);
+  saveCustom(); drawList(); toast("Упражнение добавлено");
+};
 
 window.setDay = i => { day=i; gym=DAYS[i].gym; drawHeader(); drawList(); };
 window.setGym = i => { gym=i; drawHeader(); drawList(); };
@@ -354,6 +491,8 @@ catch(err){ document.getElementById("list").innerHTML =
 // 2) хранилище — localStorage телефона
 (function load(){
   try{
+    const rawC = localStorage.getItem("gym:custom");
+    if(rawC){ custom = JSON.parse(rawC); applyCustom(); }
     const raw = localStorage.getItem("gym:current");
     if(raw){
       const o = JSON.parse(raw);
@@ -371,7 +510,7 @@ catch(err){ document.getElementById("list").innerHTML =
 
 // ── экспорт / импорт: файл уходит в «Файлы», iCloud, куда угодно ──
 window.exportData = function(){
-  const dump = {v:1, saved:new Date().toISOString(), state, last,
+  const dump = {v:2, saved:new Date().toISOString(), state, last, custom,
                 hist: Object.keys(localStorage).filter(k=>k.startsWith("gym:hist:"))
                         .reduce((a,k)=>(a[k]=localStorage.getItem(k),a),{})};
   const blob = new Blob([JSON.stringify(dump,null,1)], {type:"application/json"});
@@ -391,6 +530,7 @@ window.importData = function(input){
     try{
       const o = JSON.parse(rd.result);
       state = o.state || {}; last = o.last || {};
+      if(o.custom){ custom = o.custom; saveCustom(); applyCustom(); }
       if(o.hist) Object.keys(o.hist).forEach(k=>localStorage.setItem(k,o.hist[k]));
       localStorage.setItem("gym:current", JSON.stringify({state,gym,day}));
       drawHeader(); drawList(); toast("Данные загружены");
