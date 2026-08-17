@@ -209,6 +209,7 @@ header{
   <div class="stat" id="stat"></div>
   <button class="btn ghost" onclick="exportData()" title="Выгрузить">⤓</button>
   <label class="btn ghost" style="cursor:pointer" title="Загрузить">⤒<input type="file" accept="application/json" style="display:none" onchange="importData(this)"></label>
+  <button class="btn ghost" onclick="showHist()">📈</button>
   <button class="btn ghost" id="clearBtn">Сброс</button>
   <button class="btn" id="saveBtn">Сохранить</button>
 </div>
@@ -583,7 +584,7 @@ window.showHist = function(){
   const box = $("#hist");
   if(!H.length){
     box.innerHTML = `<div class="hwrap"><div class="hhead"><b>История — ${DAYS[day].name||DAYS[day].short.replace(/<br>/g," ")}</b>
-      <button class="btn g" onclick="hideHist()">Закрыть</button></div>
+      <button class="btn ghost" onclick="hideHist()">Закрыть</button></div>
       <div class="hempty">Пока пусто. Заполни подходы и нажми «Готово» — тренировка попадёт сюда.</div></div>`;
     box.style.display="block"; return;
   }
@@ -612,7 +613,7 @@ window.showHist = function(){
       ${list}</div>`;
   }).join("");
   box.innerHTML = `<div class="hwrap"><div class="hhead"><b>История — ${DAYS[day].name||DAYS[day].short.replace(/<br>/g," ")}</b>
-    <button class="btn g" onclick="hideHist()">Закрыть</button></div>${cards}</div>`;
+    <button class="btn ghost" onclick="hideHist()">Закрыть</button></div>${cards}</div>`;
   box.style.display="block";
 };
 window.hideHist = function(){ $("#hist").style.display="none"; };
