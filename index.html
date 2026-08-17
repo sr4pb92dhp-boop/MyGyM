@@ -54,6 +54,7 @@ header{
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;transition:.15s;
 }
 .gym.on{background:var(--chalk);color:var(--iron);border-color:var(--chalk)}
+.gym.add{flex:0 0 38px;border-style:dashed;font-size:15px}
 
 /* ── карточка упражнения ── */
 .card{
@@ -167,6 +168,24 @@ header{
   text-transform:uppercase;letter-spacing:.03em;margin:16px 0 2px;
 }
 .sub{font-size:12px;color:var(--mute);margin-bottom:4px}
+
+#hist{position:fixed;inset:0;z-index:50;background:var(--iron);overflow-y:auto;
+  padding:14px 14px calc(24px + env(safe-area-inset-bottom));padding-top:calc(14px + env(safe-area-inset-top))}
+.hwrap{max-width:600px;margin:0 auto}
+.hhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.hhead b{font-size:16px;font-weight:600}
+.hempty{opacity:.6;font-size:13px;line-height:1.6;padding:26px 4px}
+.hcard{background:CARD;border-radius:13px;padding:13px 15px;margin-bottom:11px;border:1px solid LINE}
+.hname{font-size:14.5px;font-weight:600;margin-bottom:7px}
+.htop2{display:flex;align-items:center;gap:9px;margin-bottom:9px;padding-bottom:9px;border-bottom:1px solid LINE}
+.htop2 .up{color:#4CAF6D;font-size:12.5px;font-weight:600}
+.htop2 .dn{color:#C8102E;font-size:12.5px;font-weight:600}
+.htop2 .fl{opacity:.55;font-size:12.5px}
+.hcnt{opacity:.5;font-size:11.5px;margin-right:auto}
+.hrow{display:flex;gap:11px;padding:4px 0;font-size:12.5px}
+.hdate{opacity:.55;width:44px;flex-shrink:0;font-variant-numeric:tabular-nums}
+.hsets{font-variant-numeric:tabular-nums}
+.hsets i{opacity:.5;font-style:normal}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -193,10 +212,11 @@ header{
   <button class="btn ghost" id="clearBtn">Сброс</button>
   <button class="btn" id="saveBtn">Сохранить</button>
 </div>
+<div id="hist" style="display:none"></div>
 <div class="toast" id="toast"></div>
 
 <script>
-const GYMS = ["Грисмолл","Весна","Нежинская"];
+let GYMS = ["Грисмолл","Весна","Нежинская"];
 
 // [название, [Грисмолл, Весна, Нежинская]]
 const DAYS = [
@@ -234,7 +254,7 @@ const DAYS = [
 ]},
 ];
 
-let custom = {vars:{}, ex:{}, order:{}};   // добавленное пользователем
+let custom = {vars:{}, ex:{}, order:{}, gyms:null, w:{}};   // w — веса по залам   // добавленное пользователем
 let day = 0, gym = DAYS[0].gym;
 let state = {};   // ключ d:e -> {v, sets:[{w,r,done}]}
 let last  = {};   // прошлая сессия
@@ -278,17 +298,27 @@ function cur(d,e){
   if(!state[k]) state[k] = {v:0, sets:Array.from({length:DAYS[d].ex[e][2]},()=>({w:"",r:"",done:false}))};
   return state[k];
 }
+function wKey(d,e,vi,g){ return d+":"+e+":"+vi+":"+g }
+function wGet(d,e,vi,g){
+  const k = wKey(d,e,vi,g);
+  if(custom.w && custom.w[k] !== undefined) return custom.w[k];
+  const arr = DAYS[d].ex[e][3][vi][1];
+  return (arr && arr[g] !== undefined) ? arr[g] : 0;
+}
+function wSet(d,e,vi,g,val){
+  custom.w = custom.w || {};
+  custom.w[wKey(d,e,vi,g)] = val;
+}
 function recWeight(d,e){
-  const st = cur(d,e);
-  const w = DAYS[d].ex[e][3][st.v][1][gym];
-  return w || 0;
+  return wGet(d, e, cur(d,e).v, gym) || 0;
 }
 
 function drawHeader(){
   $("#days").innerHTML = DAYS.map((x,i)=>
     `<button class="day ${i===day?'on':''}" data-d="${i}" onclick="setDay(${i})">${x.name.replace(" + ","<br>+ ")}</button>`).join("");
   $("#gyms").innerHTML = GYMS.map((g,i)=>
-    `<button class="gym ${i===gym?'on':''}" onclick="setGym(${i})">${g}</button>`).join("");
+    `<button class="gym ${i===gym?'on':''}" onclick="${i===gym?`editGym()`:`setGym(${i})`}">${g}</button>`).join("")
+    + `<button class="gym add" onclick="addGym()">＋</button>`;
   document.documentElement.style.setProperty("--day", DAYS[day].color);
   $("#dayTitle").textContent = DAYS[day].name;
   $("#daySub").textContent = `Зал: ${GYMS[gym]} · ${DAYS[day].ex.length} упражнений`;
@@ -302,8 +332,10 @@ function drawList(){
     const isPlank = slot==="Планка";
     const lk = last[key(day,e)];
 
-    const opts = vars.map((v,i)=>
-      `<option value="${i}" ${i===st.v?'selected':''}>${v[0]}${v[1][gym]?' · '+v[1][gym]+' кг':''}</option>`).join("");
+    const opts = vars.map((v,i)=>{
+      const vw = wGet(day,e,i,gym);
+      return `<option value="${i}" ${i===st.v?'selected':''}>${v[0]}${vw?' · '+vw+' кг':''}</option>`;
+    }).join("");
 
     const sets = st.sets.map((s,i)=>{
       const ghost = lk && lk.sets[i] ? `${lk.sets[i].w||"—"}/${lk.sets[i].r||"—"}` : "";
@@ -355,6 +387,50 @@ function drawStat(){
   });
   $("#stat").innerHTML = `<b>${done}</b>/${all} подходов${vol?` · тоннаж <b>${Math.round(vol)}</b> кг`:""}`;
 }
+
+window.addGym = function(){
+  const name = prompt("Название зала:");
+  if(!name || !name.trim()) return;
+  const g = GYMS.length;
+  // веса нового зала — копия текущего, дальше правишь тапом по цифре
+  DAYS.forEach((day_, d)=>{
+    day_.ex.forEach((ex, e)=>{
+      ex[3].forEach((v, vi)=>{ wSet(d, e, vi, g, wGet(d, e, vi, gym)); });
+    });
+  });
+  GYMS.push(name.trim());
+  custom.gyms = GYMS.slice();
+  gym = g;
+  saveCustom(); drawHeader(); drawList();
+  toast("Зал добавлен — веса скопированы, поправь тапом по цифре");
+};
+
+window.editGym = function(){
+  const cur_ = GYMS[gym];
+  const r = prompt("Название зала (стереть и сохранить = удалить):", cur_);
+  if(r === null) return;
+  if(!r.trim()){
+    if(GYMS.length < 2){ toast("Последний зал не удалить"); return; }
+    if(!confirm("Удалить зал «"+cur_+"» вместе с его весами?")) return;
+    const del = gym;
+    GYMS.splice(del,1);
+    // веса удалённого зала выбрасываем, остальные сдвигаем
+    const nw = {};
+    Object.keys(custom.w||{}).forEach(k=>{
+      const [d,e,vi,g] = k.split(":").map(Number);
+      if(g === del) return;
+      nw[wKey(d,e,vi, g > del ? g-1 : g)] = custom.w[k];
+    });
+    custom.w = nw;
+    custom.gyms = GYMS.slice();
+    gym = 0;
+    saveCustom(); drawHeader(); drawList(); toast("Зал удалён");
+    return;
+  }
+  GYMS[gym] = r.trim();
+  custom.gyms = GYMS.slice();
+  saveCustom(); drawHeader(); drawList();
+};
 
 window.move = function(e, dir){
   const list = DAYS[day].ex;
@@ -411,14 +487,9 @@ window.delVar = function(e){
 window.editW = function(e){
   const st = cur(day,e);
   const v  = DAYS[day].ex[e][3][st.v];
-  const w  = askNum("Рабочий вес в зале «"+GYMS[gym]+"», кг:", v[1][gym]);
+  const w  = askNum("Рабочий вес в зале «"+GYMS[gym]+"», кг:", wGet(day,e,st.v,gym));
   if(w===null) return;
-  v[1][gym] = w;
-  const k = key(day,e);
-  custom.vars[k] = custom.vars[k] || [];
-  const mine = custom.vars[k].find(x=>x[0]===v[0]);
-  if(mine){ mine[1][gym] = w; }
-  else { custom.vars[k].push([v[0], v[1].slice(), false, "w"]); }
+  wSet(day,e,st.v,gym,w);
   saveCustom(); drawList(); toast("Вес обновлён");
 };
 
@@ -465,18 +536,86 @@ async function save(silent){
   }, silent?600:0);
 }
 
-$("#saveBtn").onclick = async ()=>{
+$("#saveBtn").onclick = ()=>{
   try{
     const stamp = new Date().toISOString().slice(0,10);
+    // в историю пишем НАЗВАНИЯ и цифры — так запись не поедет при перестановке упражнений
+    const items = DAYS[day].ex.map((ex,e)=>({
+      name: ex[0],
+      sets: cur(day,e).sets.filter(s=>s.w||s.r).map(s=>({w:s.w, r:s.r}))
+    })).filter(x=>x.sets.length);
+    if(!items.length){ toast("Нечего записывать — заполни подходы"); return; }
+    localStorage.setItem("gym:hist:"+stamp+":"+day, JSON.stringify({date:stamp, day, items}));
     localStorage.setItem("gym:last:"+day, JSON.stringify(state));
-    localStorage.setItem("gym:hist:"+stamp+":"+day, JSON.stringify(state));
-    last = {}; Object.keys(state).forEach(k=>{ if(k.startsWith(day+":")) last[k]=JSON.parse(JSON.stringify(state[k])); });
-    DAYS[day].ex.forEach((ex,e)=>{ cur(day,e).sets.forEach(s=>{ s.w=""; s.r=""; s.done=false; }); });
-    await save(true);
-    drawList();
-    toast("Тренировка записана");
-  }catch(err){ toast("Ошибка записи"); }
+    last={}; Object.keys(state).forEach(k=>{ if(k.startsWith(day+":")) last[k]=JSON.parse(JSON.stringify(state[k])); });
+    DAYS[day].ex.forEach((ex,e)=>cur(day,e).sets.forEach(s=>{s.w="";s.r="";s.done=false;}));
+    save(true); drawList(); toast("Тренировка записана");
+  }catch(e){ toast("Ошибка записи"); }
 };
+
+// ── История и прогресс ──
+function histFor(d){
+  const out=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(!k || !k.startsWith("gym:hist:")) continue;
+    if(!k.endsWith(":"+d)) continue;
+    try{ const o=JSON.parse(localStorage.getItem(k)); if(o && o.items) out.push(o); }catch(e){}
+  }
+  return out.sort((a,b)=> a.date < b.date ? 1 : -1);
+}
+function maxW(sets){
+  let m=0; sets.forEach(s=>{ const w=parseFloat(String(s.w).replace(",",".")); if(w>m) m=w; });
+  return m;
+}
+function spark(vals){
+  if(vals.length<2) return "";
+  const w=104,h=26,mn=Math.min(...vals),mx=Math.max(...vals),rg=(mx-mn)||1;
+  const pts=vals.map((v,i)=>[ (i/(vals.length-1))*w, h-2-((v-mn)/rg)*(h-6) ]);
+  const dd=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const lastP=pts[pts.length-1];
+  return `<svg width="${w}" height="${h}" style="display:block">
+    <path d="${dd}" stroke="#C8102E" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${lastP[0].toFixed(1)}" cy="${lastP[1].toFixed(1)}" r="2.6" fill="#C8102E"/></svg>`;
+}
+window.showHist = function(){
+  const H = histFor(day);
+  const box = $("#hist");
+  if(!H.length){
+    box.innerHTML = `<div class="hwrap"><div class="hhead"><b>История — ${DAYS[day].name||DAYS[day].short.replace(/<br>/g," ")}</b>
+      <button class="btn g" onclick="hideHist()">Закрыть</button></div>
+      <div class="hempty">Пока пусто. Заполни подходы и нажми «Готово» — тренировка попадёт сюда.</div></div>`;
+    box.style.display="block"; return;
+  }
+  // собираем по упражнениям
+  const names=[]; H.forEach(h=>h.items.forEach(it=>{ if(!names.includes(it.name)) names.push(it.name); }));
+  const cards = names.map(n=>{
+    const rows = H.filter(h=>h.items.some(it=>it.name===n))
+      .map(h=>({date:h.date, sets:h.items.find(it=>it.name===n).sets}));
+    const series = rows.map(r=>maxW(r.sets)).reverse().filter(v=>v>0);
+    const first=series[0], lastv=series[series.length-1];
+    let trend="";
+    if(series.length>1 && first){
+      const dlt=+(lastv-first).toFixed(1);
+      trend = dlt>0 ? `<span class="up">+${dlt} кг</span>`
+            : dlt<0 ? `<span class="dn">${dlt} кг</span>`
+            : `<span class="fl">без изменений</span>`;
+    }
+    const list = rows.slice(0,8).map(r=>{
+      const d=r.date.slice(8,10)+"."+r.date.slice(5,7);
+      return `<div class="hrow"><span class="hdate">${d}</span>
+        <span class="hsets">${r.sets.map(s=>`${s.w||"—"}<i>/${s.r||"?"}</i>`).join("  ")}</span></div>`;
+    }).join("");
+    return `<div class="hcard">
+      <div class="hname">${n}</div>
+      <div class="htop2">${trend}<span class="hcnt">${rows.length} трен.</span>${spark(series)}</div>
+      ${list}</div>`;
+  }).join("");
+  box.innerHTML = `<div class="hwrap"><div class="hhead"><b>История — ${DAYS[day].name||DAYS[day].short.replace(/<br>/g," ")}</b>
+    <button class="btn g" onclick="hideHist()">Закрыть</button></div>${cards}</div>`;
+  box.style.display="block";
+};
+window.hideHist = function(){ $("#hist").style.display="none"; };
 
 $("#clearBtn").onclick = ()=>{
   DAYS[day].ex.forEach((ex,e)=>{ cur(day,e).sets.forEach(s=>{ s.w=""; s.r=""; s.done=false; }); });
@@ -492,12 +631,17 @@ catch(err){ document.getElementById("list").innerHTML =
 (function load(){
   try{
     const rawC = localStorage.getItem("gym:custom");
-    if(rawC){ custom = JSON.parse(rawC); applyCustom(); }
+    if(rawC){
+      custom = JSON.parse(rawC);
+      custom.w = custom.w || {};
+      if(Array.isArray(custom.gyms) && custom.gyms.length) GYMS = custom.gyms.slice();
+      applyCustom();
+    }
     const raw = localStorage.getItem("gym:current");
     if(raw){
       const o = JSON.parse(raw);
       state = o.state || {};
-      if(typeof o.gym === "number") gym = o.gym;
+      if(typeof o.gym === "number" && o.gym < GYMS.length) gym = o.gym;
       if(typeof o.day === "number") day = o.day;
     }
     for(let d=0; d<DAYS.length; d++){
