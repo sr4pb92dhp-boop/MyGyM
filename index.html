@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Тренировки</title>
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -187,6 +187,56 @@ header{
 .hsets{font-variant-numeric:tabular-nums}
 .hsets i{opacity:.5;font-style:normal}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ── доработки v2 ── */
+.tab.wide{flex:0 0 40px;font-size:16px;padding:11px 2px}
+.hidebtn{width:100%;margin:2px 0 16px;background:transparent;border:1px dashed var(--line);
+  color:var(--mute);border-radius:10px;padding:10px;font-size:12px;cursor:pointer;
+  font-family:-apple-system,sans-serif}
+.scheme{display:inline-block;border:1px solid var(--line);border-radius:6px;
+  padding:1px 7px;font-size:11px;color:var(--chalk);cursor:pointer;margin-left:7px;
+  font-family:-apple-system,sans-serif;font-weight:600}
+.eb.hide{flex:0 0 38px;color:var(--mute)}
+.tempmark{color:var(--yellow);font-size:10px;margin-left:5px}
+#modal{position:fixed;inset:0;z-index:60;background:rgba(15,17,22,.88);
+  display:none;overflow-y:auto;padding:0 14px 40px;
+  padding-top:calc(20px + env(safe-area-inset-top))}
+.mwrap{max-width:600px;margin:0 auto}
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.mhead b{font-size:16px}
+.mgroup{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);
+  margin:16px 0 7px}
+.mitem{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);
+  color:var(--chalk);border-radius:11px;padding:13px 15px;font-size:14px;margin-bottom:7px;
+  cursor:pointer;font-family:-apple-system,sans-serif;display:flex;align-items:center;gap:9px}
+.mitem:active{background:var(--surface2)}
+.mitem small{color:var(--mute);font-size:11.5px;margin-left:auto;text-align:right}
+.mnote{color:var(--mute);font-size:12px;line-height:1.6;margin:4px 0 14px}
+
+/* ── доработки v2 ── */
+.tab.wide{flex:0 0 40px;font-size:16px;padding:11px 2px}
+.hidebtn{width:100%;margin:2px 0 16px;background:transparent;border:1px dashed var(--line);
+  color:var(--mute);border-radius:10px;padding:10px;font-size:12px;cursor:pointer;
+  font-family:-apple-system,sans-serif}
+.scheme{display:inline-block;border:1px solid var(--line);border-radius:6px;
+  padding:1px 7px;font-size:11px;color:var(--chalk);cursor:pointer;margin-left:7px;
+  font-family:-apple-system,sans-serif;font-weight:600}
+.eb.hide{flex:0 0 38px;color:var(--mute)}
+.tempmark{color:var(--yellow);font-size:10px;margin-left:5px}
+#modal{position:fixed;inset:0;z-index:60;background:rgba(15,17,22,.88);
+  display:none;overflow-y:auto;padding:0 14px 40px;
+  padding-top:calc(20px + env(safe-area-inset-top))}
+.mwrap{max-width:600px;margin:0 auto}
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.mhead b{font-size:16px}
+.mgroup{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);
+  margin:16px 0 7px}
+.mitem{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);
+  color:var(--chalk);border-radius:11px;padding:13px 15px;font-size:14px;margin-bottom:7px;
+  cursor:pointer;font-family:-apple-system,sans-serif;display:flex;align-items:center;gap:9px}
+.mitem:active{background:var(--surface2)}
+.mitem small{color:var(--mute);font-size:11.5px;margin-left:auto;text-align:right}
+.mnote{color:var(--mute);font-size:12px;line-height:1.6;margin:4px 0 14px}
 </style>
 </head>
 <body>
@@ -207,484 +257,519 @@ header{
 
 <div class="foot">
   <div class="stat" id="stat"></div>
-  <button class="btn ghost" onclick="exportData()" title="Выгрузить">⤓</button>
-  <label class="btn ghost" style="cursor:pointer" title="Загрузить">⤒<input type="file" accept="application/json" style="display:none" onchange="importData(this)"></label>
   <button class="btn ghost" onclick="showHist()">📈</button>
+  <button class="btn ghost" onclick="exportData()">⤓</button>
+  <label class="btn ghost" style="cursor:pointer">⤒<input type="file" accept="application/json" style="display:none" onchange="importData(this)"></label>
   <button class="btn ghost" id="clearBtn">Сброс</button>
-  <button class="btn" id="saveBtn">Сохранить</button>
+  <button class="btn" id="saveBtn">Готово</button>
 </div>
+
 <div id="hist" style="display:none"></div>
+<div id="modal"></div>
 <div class="toast" id="toast"></div>
 
 <script>
+const BASE = [{"name": "Спина + бицепс", "color": "var(--blue)", "gym": 2, "ex": [["Горизонтальная тяга", "4×8", 4, [["Тяга блока к поясу", [80, 77, 79]], ["Тяга в тренажёре попеременно", [64, 64, 64]], ["Тяга двух гантелей в наклоне", [26, 26, 26]]]], ["Вертикальная тяга", "4×8", 4, [["Верт. тяга широким хватом", [75, 73, 75]], ["Верт. тяга узким хватом", [66, 59, 59]], ["Верт. тяга в тренажёре", [57, 57, 57]], ["Верт. попеременно с блином", [60, 60, 60]]]], ["Тяга гантели в наклоне", "3×10", 3, [["Тяга гантели в наклоне", [26, 26, 26]], ["Тяга с блином в тренажёре боком", [35, 40, 50]]]], ["Гиперэкстензия", "3×12", 3, [["Гиперэкстензия в тренажёре", [80, 80, 80]], ["Гиперэкстензия (свой вес + блин)", [20, 20, 20]]]], ["Бицепс в тренажёре", "4×8", 4, [["Бицепс в тренажёре (стек)", [45, 36, 36]], ["Бицепс сидя на наклонной скамье", [9, 9, 10]]]], ["Бицепс изоляция", "3×12", 3, [["Сгибание на блоке (канат)", [0, 0, 0]], ["Бицепс на скамье Скотта", [0, 0, 0]]]], ["Задняя дельта", "3×12", 3, [["Задняя дельта в тренажёре попеременно", [63, 48, 54]], ["Задняя дельта на тросе", [0, 0, 0]], ["Разведение гантелей в наклоне", [0, 0, 0]]]], ["Пресс в тренажёре", "3×15", 3, [["Пресс в тренажёре", [25, 25, 30]]]]]}, {"name": "Ноги + плечи", "color": "var(--red)", "gym": 0, "ex": [["Жим ногами", "4×8", 4, [["Жим ногами широким хватом", [230, 230, 230]], ["Жим ногами узким хватом (квадры)", [210, 210, 210]], ["Гакк-присед", [0, 0, 0]]]], ["Разгибание ног (квадры)", "3×12", 3, [["Разгибание ног в тренажёре (Хаммер)", [45, 45, 45]], ["Разгибание ног одной ногой", [0, 0, 0]]]], ["ЗПБ — задняя поверхность бедра", "3×12", 3, [["Сгибание ног сидя", [45, 45, 45]], ["Сгибание ног лёжа", [0, 0, 0]], ["Румынская тяга с гантелями", [0, 0, 0]], ["Ягодичный мост / отведение", [0, 0, 0]]]], ["Икры в тренажёре", "3×12", 3, [["Икры в тренажёре", [50, 47.5, 47.5]]]], ["Жим на плечи", "4×8", 4, [["Жим штанги в Смите", [45, 45, 45]], ["Жим в тренажёре на плечи", [45, 45, 45]], ["Жим штанги в раме", [41, 41, 41]], ["Жим гантелей сидя", [18, 18, 18]]]], ["Средняя дельта", "4×12", 4, [["Махи в тренажёре (стек)", [36, 36, 36]], ["Махи гантелями в стороны", [12, 12, 12]], ["Махи на блоке одной рукой", [9, 9, 9]]]], ["Задняя дельта", "3×12", 3, [["Задняя дельта в тренажёре попеременно", [63, 48, 54]], ["Задняя дельта на тросе", [0, 0, 0]]]], ["Передняя дельта / протяжка", "3×12", 3, [["Протяжка в блоке", [31.5, 31.5, 31.5]], ["Протяжка (тяга к подбородку)", [24, 24, 24]], ["Подъём гантелей перед собой", [22, 22, 22]]]], ["Планка", "3×2 мин", 3, [["Планка", [0, 0, 0]]]]]}, {"name": "Грудь + трицепс", "color": "var(--green)", "gym": 0, "ex": [["Жим гантелей на наклонной", "4×8", 4, [["Жим гантелей на наклонной", [42, 42, 40]]]], ["Жим горизонтально", "3×10", 3, [["Жим лёжа в тренажёре с блинами", [50, 50, 50]], ["Жим гантелей горизонтально", [38, 38, 38]]]], ["Брусья с весом", "3×10", 3, [["Брусья с весом", [35, 30, 30]]]], ["Кроссовер / сведения", "3×12", 3, [["Кроссовер центр в блоке", [9, 9, 9]], ["Кроссовер низ → вверх", [22, 22, 22]], ["Сведение бабочка", [30, 30, 35]], ["Сведение в тренажёре (центр)", [16, 16, 16]]]], ["Трицепс в тренажёре", "4×8", 4, [["Трицепс в тренажёре (стек)", [80, 80, 80]]]], ["Трицепс изоляция", "3×12", 3, [["Жим каната из-за головы", [13.5, 16, 16]], ["Разгибание на блоке канатом", [14, 18, 15]], ["Французский с гантелью над головой", [0, 0, 0]]]], ["Средняя (боковая) дельта", "3×12", 3, [["Махи в тренажёре (стек)", [36, 36, 36]], ["Махи гантелями в стороны", [12, 12, 12]], ["Махи на блоке одной рукой", [9, 9, 9]]]], ["Пресс в тренажёре", "3×15", 3, [["Пресс в тренажёре", [25, 25, 30]]]], ["Планка", "3×2 мин", 3, [["Планка", [0, 0, 0]]]]]}];
 let GYMS = ["Грисмолл","Весна","Нежинская"];
-
-// [название, [Грисмолл, Весна, Нежинская]]
-const DAYS = [
-{ name:"Спина + бицепс", color:"var(--blue)", gym:2, ex:[
-  ["Горизонтальная тяга","4×8",4,[["Тяга блока к поясу",[80,77,79]],["Тяга в тренажёре попеременно",[64,64,64]],["Тяга двух гантелей в наклоне",[26,26,26]]]],
-  ["Вертикальная тяга","4×8",4,[["Верт. тяга широким хватом",[75,73,75]],["Верт. тяга узким хватом",[66,59,59]],["Верт. тяга в тренажёре",[57,57,57]],["Верт. попеременно с блином",[60,60,60]]]],
-  ["Тяга гантели в наклоне","3×10",3,[["Тяга гантели в наклоне",[26,26,26]],["Тяга с блином в тренажёре боком",[35,40,50]]]],
-  ["Гиперэкстензия","3×12",3,[["Гиперэкстензия в тренажёре",[80,80,80]],["Гиперэкстензия (свой вес + блин)",[20,20,20]]]],
-  ["Бицепс в тренажёре","4×8",4,[["Бицепс в тренажёре (стек)",[45,36,36]],["Бицепс сидя на наклонной скамье",[9,9,10]]]],
-  ["Бицепс изоляция","3×12",3,[["Сгибание на блоке (канат)",[0,0,0]],["Бицепс на скамье Скотта",[0,0,0]]]],
-  ["Задняя дельта","3×12",3,[["Задняя дельта в тренажёре попеременно",[63,48,54]],["Задняя дельта на тросе",[0,0,0]],["Разведение гантелей в наклоне",[0,0,0]]]],
-  ["Пресс в тренажёре","3×15",3,[["Пресс в тренажёре",[25,25,30]]]],
-]},
-{ name:"Ноги + плечи", color:"var(--red)", gym:0, ex:[
-  ["Жим ногами","4×8",4,[["Жим ногами широким хватом",[230,230,230]],["Жим ногами узким хватом (квадры)",[210,210,210]],["Гакк-присед",[0,0,0]]]],
-  ["Разгибание ног (квадры)","3×12",3,[["Разгибание ног в тренажёре (Хаммер)",[45,45,45]],["Разгибание ног одной ногой",[0,0,0]]]],
-  ["ЗПБ — задняя поверхность бедра","3×12",3,[["Сгибание ног сидя",[45,45,45]],["Сгибание ног лёжа",[0,0,0]],["Румынская тяга с гантелями",[0,0,0]],["Ягодичный мост / отведение",[0,0,0]]]],
-  ["Икры в тренажёре","3×12",3,[["Икры в тренажёре",[50,47.5,47.5]]]],
-  ["Жим на плечи","4×8",4,[["Жим штанги в Смите",[45,45,45]],["Жим в тренажёре на плечи",[45,45,45]],["Жим штанги в раме",[41,41,41]],["Жим гантелей сидя",[18,18,18]]]],
-  ["Средняя дельта","4×12",4,[["Махи в тренажёре (стек)",[36,36,36]],["Махи гантелями в стороны",[12,12,12]],["Махи на блоке одной рукой",[9,9,9]]]],
-  ["Задняя дельта","3×12",3,[["Задняя дельта в тренажёре попеременно",[63,48,54]],["Задняя дельта на тросе",[0,0,0]]]],
-  ["Передняя дельта / протяжка","3×12",3,[["Протяжка в блоке",[31.5,31.5,31.5]],["Протяжка (тяга к подбородку)",[24,24,24]],["Подъём гантелей перед собой",[22,22,22]]]],
-  ["Планка","3×2 мин",3,[["Планка",[0,0,0]]]],
-]},
-{ name:"Грудь + трицепс", color:"var(--green)", gym:0, ex:[
-  ["Жим гантелей на наклонной","4×8",4,[["Жим гантелей на наклонной",[42,42,40]]]],
-  ["Жим горизонтально","3×10",3,[["Жим лёжа в тренажёре с блинами",[50,50,50]],["Жим гантелей горизонтально",[38,38,38]]]],
-  ["Брусья с весом","3×10",3,[["Брусья с весом",[35,30,30]]]],
-  ["Кроссовер / сведения","3×12",3,[["Кроссовер центр в блоке",[9,9,9]],["Кроссовер низ → вверх",[22,22,22]],["Сведение бабочка",[30,30,35]],["Сведение в тренажёре (центр)",[16,16,16]]]],
-  ["Трицепс в тренажёре","4×8",4,[["Трицепс в тренажёре (стек)",[80,80,80]]]],
-  ["Трицепс изоляция","3×12",3,[["Жим каната из-за головы",[13.5,16,16]],["Разгибание на блоке канатом",[14,18,15]],["Французский с гантелью над головой",[0,0,0]]]],
-  ["Средняя (боковая) дельта","3×12",3,[["Махи в тренажёре (стек)",[36,36,36]],["Махи гантелями в стороны",[12,12,12]],["Махи на блоке одной рукой",[9,9,9]]]],
-  ["Пресс в тренажёре","3×15",3,[["Пресс в тренажёре",[25,25,30]]]],
-  ["Планка","3×2 мин",3,[["Планка",[0,0,0]]]],
-]},
-];
-
-let custom = {vars:{}, ex:{}, order:{}, gyms:null, w:{}};   // w — веса по залам   // добавленное пользователем
-let day = 0, gym = DAYS[0].gym;
-let state = {};   // ключ d:e -> {v, sets:[{w,r,done}]}
-let last  = {};   // прошлая сессия
+let custom = {vars:{}, ex:{}, order:{}, gyms:null, w:{}, hidden:{}, schemes:{}, temp:[]};
+let state = {}, last = {};
+let day = 0, gym = 0, view = "day";
+let DAYS = [];
 const $ = s => document.querySelector(s);
 
-function applyCustom(){
-  Object.keys(custom.ex||{}).forEach(d=>{
-    (custom.ex[d]||[]).forEach(x=>{
-      const exists = DAYS[d].ex.some(q=>q[0]===x[0]);
-      if(!exists) DAYS[d].ex.push([x[0],x[1],x[2],x[3].map(v=>[v[0],v[1].slice()]),true]);
-    });
-  });
-  Object.keys(custom.order||{}).forEach(d=>{
-    const want = custom.order[d]; if(!want) return;
-    const byName = {}; DAYS[d].ex.forEach(x=>byName[x[0]] = x);
-    const sorted = [];
-    want.forEach(n=>{ if(byName[n]){ sorted.push(byName[n]); delete byName[n]; } });
-    DAYS[d].ex.forEach(x=>{ if(byName[x[0]]) sorted.push(x); });
-    if(sorted.length === DAYS[d].ex.length) DAYS[d].ex = sorted;
-  });
-  Object.keys(custom.vars||{}).forEach(k=>{
-    const [d,e] = k.split(":").map(Number);
-    if(!DAYS[d] || !DAYS[d].ex[e]) return;
-    (custom.vars[k]||[]).forEach(v=>{
-      if(!DAYS[d].ex[e][3].some(q=>q[0]===v[0])) DAYS[d].ex[e][3].push([v[0],v[1].slice()]);
-    });
+/* ── дни: базовые + разовые ── */
+function buildDays(){
+  DAYS = BASE.map(d => ({name:d.name, id:null, ex:d.ex.map(x=>[x[0],x[1],x[2],x[3].map(v=>[v[0],v[1].slice(),v[2]]),x[4]])}));
+  (custom.temp||[]).forEach(t=>{
+    DAYS.push({name:t.name, id:t.id, temp:true,
+      ex:(t.ex||[]).map(x=>[x[0],x[1],x[2],x[3].map(v=>[v[0],v[1].slice(),true]),true])});
   });
 }
-function saveCustom(){
-  try{ localStorage.setItem("gym:custom", JSON.stringify(custom)); }catch(e){}
+function dk(d){ return DAYS[d] && DAYS[d].id ? DAYS[d].id : String(d); }   // ключ дня
+function key(d,e){ return dk(d)+":"+e }
+function wKey(d,e,vi,g){ return dk(d)+":"+e+":"+vi+":"+g }
+function wGet(d,e,vi,g){
+  const k=wKey(d,e,vi,g);
+  if(custom.w && custom.w[k]!==undefined) return custom.w[k];
+  const a=DAYS[d].ex[e][3][vi][1];
+  return (a&&a[g]!==undefined)?a[g]:(a&&a[0]!==undefined?a[0]:0);
 }
-function askNum(msg, def){
-  const r = prompt(msg, def===undefined?"":String(def));
-  if(r===null) return null;
-  const n = parseFloat(String(r).replace(",","."));
-  return isNaN(n) ? 0 : n;
-}
-function key(d,e){ return d+":"+e }
+function wSet(d,e,vi,g,v){ custom.w=custom.w||{}; custom.w[wKey(d,e,vi,g)]=v; }
 function cur(d,e){
-  const k = key(d,e);
-  if(!state[k]) state[k] = {v:0, sets:Array.from({length:DAYS[d].ex[e][2]},()=>({w:"",r:"",done:false}))};
+  const k=key(d,e);
+  if(!state[k]) state[k]={v:0, sets:Array.from({length:DAYS[d].ex[e][2]},()=>({w:"",r:"",done:false}))};
+  const need=DAYS[d].ex[e][2], have=state[k].sets.length;
+  if(have<need) for(let i=have;i<need;i++) state[k].sets.push({w:"",r:"",done:false});
+  if(have>need) state[k].sets.length=need;
   return state[k];
 }
-function wKey(d,e,vi,g){ return d+":"+e+":"+vi+":"+g }
-function wGet(d,e,vi,g){
-  const k = wKey(d,e,vi,g);
-  if(custom.w && custom.w[k] !== undefined) return custom.w[k];
-  const arr = DAYS[d].ex[e][3][vi][1];
-  return (arr && arr[g] !== undefined) ? arr[g] : 0;
-}
-function wSet(d,e,vi,g,val){
-  custom.w = custom.w || {};
-  custom.w[wKey(d,e,vi,g)] = val;
-}
-function recWeight(d,e){
-  return wGet(d, e, cur(d,e).v, gym) || 0;
-}
+function recWeight(d,e){ return wGet(d,e,cur(d,e).v,gym)||0; }
+function hiddenList(d){ return (custom.hidden||{})[dk(d)] || []; }
+function isHidden(d,name){ return hiddenList(d).includes(name); }
 
+function applyCustom(){
+  buildDays();
+  Object.keys(custom.ex||{}).forEach(k=>{
+    const d=DAYS.findIndex(x=>dk(DAYS.indexOf(x))===k);
+    if(d<0) return;
+    (custom.ex[k]||[]).forEach(x=>{
+      if(!DAYS[d].ex.some(q=>q[0]===x[0]))
+        DAYS[d].ex.unshift([x[0],x[1],x[2],x[3].map(v=>[v[0],v[1].slice(),true]),true]);
+    });
+  });
+  Object.keys(custom.schemes||{}).forEach(k=>{
+    const [dkey,name]=k.split("|");
+    const d=DAYS.findIndex((x,i)=>dk(i)===dkey);
+    if(d<0) return;
+    const ex=DAYS[d].ex.find(q=>q[0]===name);
+    if(ex){ ex[1]=custom.schemes[k].s; ex[2]=custom.schemes[k].n; }
+  });
+  Object.keys(custom.order||{}).forEach(k=>{
+    const d=DAYS.findIndex((x,i)=>dk(i)===k);
+    if(d<0) return;
+    const want=custom.order[k], by={};
+    DAYS[d].ex.forEach(x=>by[x[0]]=x);
+    const out=[]; want.forEach(n=>{ if(by[n]){ out.push(by[n]); delete by[n]; } });
+    DAYS[d].ex.forEach(x=>{ if(by[x[0]]) out.push(x); });
+    if(out.length===DAYS[d].ex.length) DAYS[d].ex=out;
+  });
+  Object.keys(custom.vars||{}).forEach(k=>{
+    const p=k.split(":"), dkey=p[0], e=+p[1];
+    const d=DAYS.findIndex((x,i)=>dk(i)===dkey);
+    if(d<0||!DAYS[d].ex[e]) return;
+    (custom.vars[k]||[]).forEach(v=>{
+      if(!DAYS[d].ex[e][3].some(q=>q[0]===v[0])) DAYS[d].ex[e][3].push([v[0],v[1].slice(),true]);
+    });
+  });
+}
+function saveCustom(){ try{ localStorage.setItem("gym:custom", JSON.stringify(custom)); }catch(e){} }
+function askNum(m,d){ const r=prompt(m,d===undefined?"":String(d)); if(r===null) return null;
+  const n=parseFloat(String(r).replace(",",".")); return isNaN(n)?0:n; }
+
+/* ── шапка ── */
 function drawHeader(){
   $("#days").innerHTML = DAYS.map((x,i)=>
-    `<button class="day ${i===day?'on':''}" data-d="${i}" onclick="setDay(${i})">${x.name.replace(" + ","<br>+ ")}</button>`).join("");
+    `<button class="day ${view==="day"&&i===day?'on':''}" data-d="${i%3}" onclick="setDay(${i})">${x.name.replace(" + ","<br>+ ")}${x.temp?'<div class="tempmark">разовая</div>':''}</button>`).join("")
+    + `<button class="day wide ${view==="base"?'on':''}" data-d="0" onclick="showBase()" title="База упражнений">📚</button>`
+    + `<button class="day wide" data-d="1" onclick="addTempDay()" title="Разовая тренировка">＋</button>`;
   $("#gyms").innerHTML = GYMS.map((g,i)=>
-    `<button class="gym ${i===gym?'on':''}" onclick="${i===gym?`editGym()`:`setGym(${i})`}">${g}</button>`).join("")
+    `<button class="gym ${i===gym?'on':''}" onclick="${i===gym?'editGym()':'setGym('+i+')'}">${g}</button>`).join("")
     + `<button class="gym add" onclick="addGym()">＋</button>`;
-  document.documentElement.style.setProperty("--day", DAYS[day].color);
-  $("#dayTitle").textContent = DAYS[day].name;
-  $("#daySub").textContent = `Зал: ${GYMS[gym]} · ${DAYS[day].ex.length} упражнений`;
+  $("#dayTitle").textContent = DAYS[day] ? DAYS[day].name : "";
+  const hid = hiddenList(day).length;
+  $("#daySub").textContent = DAYS[day]
+    ? `Зал: ${GYMS[gym]} · ${DAYS[day].ex.filter(x=>!isHidden(day,x[0])).length} упражнений${hid?` · скрыто ${hid}`:""}`
+    : "";
 }
 
+/* ── список ── */
 function drawList(){
-  $("#list").innerHTML = DAYS[day].ex.map((ex,e)=>{
+  if(!DAYS[day]){ day=0; }
+  const vis = DAYS[day].ex.map((ex,e)=>({ex,e})).filter(o=>!isHidden(day,o.ex[0]));
+  const cards = vis.map(({ex,e},pos)=>{
     const [slot,scheme,nsets,vars] = ex;
-    const st = cur(day,e);
-    const w  = recWeight(day,e);
-    const isPlank = slot==="Планка";
-    const lk = last[key(day,e)];
-
+    const st=cur(day,e), w=recWeight(day,e), lk=last[key(day,e)];
     const opts = vars.map((v,i)=>{
-      const vw = wGet(day,e,i,gym);
+      const vw=wGet(day,e,i,gym);
       return `<option value="${i}" ${i===st.v?'selected':''}>${v[0]}${vw?' · '+vw+' кг':''}</option>`;
     }).join("");
-
-    const sets = st.sets.map((s,i)=>{
-      const ghost = lk && lk.sets[i] ? `${lk.sets[i].w||"—"}/${lk.sets[i].r||"—"}` : "";
-      return `<div class="set">
+    const sets = st.sets.map((s,i)=>`<div class="set">
         <span class="set-n">${i+1}</span>
-        <div class="f"><input class="inp" type="text" inputmode="decimal" placeholder="${isPlank?'мин':(w||'кг')}"
+        <div class="f"><input class="inp" type="text" inputmode="decimal" placeholder="${w||'кг'}"
           value="${s.w}" oninput="upd(${e},${i},'w',this.value)"></div>
         <span class="sep">/</span>
-        <div class="f"><input class="inp" type="text" inputmode="numeric" placeholder="${isPlank?'—':'повт'}"
+        <div class="f"><input class="inp" type="text" inputmode="numeric" placeholder="повт"
           value="${s.r}" oninput="upd(${e},${i},'r',this.value)"></div>
         <button class="done ${s.done?'on':''}" onclick="tog(${e},${i})">✓</button>
-      </div>`;
-    }).join("");
-
-    const board = isPlank ? "" : `<div class="board">
-        <span class="board-num" onclick="editW(${e})">${w||"—"}</span><span class="board-unit">кг</span>
-        <span class="board-tag">рекомендую<br>${GYMS[gym]}</span>
-      </div>`;
-
+      </div>`).join("");
     const hint = lk ? `<div class="hint">Прошлый раз: <b>${lk.sets.map(s=>s.w?`${s.w}/${s.r||"?"}`:"—").join("  ")}</b></div>` : "";
-
     return `<div class="card">
       <div class="card-top">
-        <div class="slot"><span>${e+1}. ${slot}</span><span class="scheme">${scheme}</span></div>
+        <div class="slot"><span>${pos+1}. ${slot}</span><span class="scheme" onclick="editScheme(${e})">${scheme}</span></div>
         <select class="pick" ${vars.length<2?'disabled':''} onchange="setVar(${e},this.value)">${opts}</select>
-        ${board}
+        <div class="board">
+          <span class="board-num" onclick="editW(${e})">${w||"—"}</span><span class="board-unit">кг</span>
+          <span class="board-tag">рекомендую<br>${GYMS[gym]}</span>
+        </div>
         <div class="edit">
-          <button class="ebtn mv" onclick="move(${e},-1)" ${e===0?'disabled':''}>↑</button>
-          <button class="ebtn mv" onclick="move(${e},1)" ${e===DAYS[day].ex.length-1?'disabled':''}>↓</button>
-          <button class="ebtn" onclick="addVar(${e})">＋ вариант</button>
-          ${vars.length>1 && vars[st.v][2] ? `<button class="ebtn del" onclick="delVar(${e})">✕</button>` : ""}
+          <button class="eb mv" onclick="move(${e},-1)" ${pos===0?'disabled':''}>↑</button>
+          <button class="eb mv" onclick="move(${e},1)" ${pos===vis.length-1?'disabled':''}>↓</button>
+          <button class="eb" onclick="addVar(${e})">＋ вариант</button>
+          <button class="eb hide" onclick="hideEx(${e})" title="Убрать с экрана">✕</button>
         </div>
       </div>
       <div class="sets">${sets}</div>
       ${hint}
     </div>`;
-  }).join("") + `<button class="addex" onclick="addEx()">＋ добавить упражнение</button>`;
+  }).join("");
+
+  const hid = hiddenList(day).length;
+  const hidBtn = hid ? `<button class="hidebtn" onclick="showHidden()">Скрытые упражнения: ${hid} — вернуть</button>` : "";
+  const delDay = DAYS[day].temp ? `<button class="hidebtn" style="color:#C8102E;border-color:rgba(200,16,46,.4)" onclick="delTempDay()">Удалить разовую тренировку</button>` : "";
+  $("#list").innerHTML = cards
+    + `<button class="addex" onclick="addEx()">＋ добавить упражнение</button>`
+    + hidBtn + delDay;
   drawStat();
 }
 
 function drawStat(){
-  let done=0, all=0, vol=0;
+  let done=0,all=0,vol=0;
   DAYS[day].ex.forEach((ex,e)=>{
-    cur(day,e).sets.forEach(s=>{
-      all++; if(s.done) done++;
+    if(isHidden(day,ex[0])) return;
+    cur(day,e).sets.forEach(s=>{ all++; if(s.done) done++;
       const w=parseFloat(String(s.w).replace(",",".")), r=parseInt(s.r);
-      if(w&&r) vol += w*r;
-    });
+      if(w&&r) vol+=w*r; });
   });
   $("#stat").innerHTML = `<b>${done}</b>/${all} подходов${vol?` · тоннаж <b>${Math.round(vol)}</b> кг`:""}`;
 }
 
-window.addGym = function(){
-  const name = prompt("Название зала:");
-  if(!name || !name.trim()) return;
-  const g = GYMS.length;
-  // веса нового зала — копия текущего, дальше правишь тапом по цифре
-  DAYS.forEach((day_, d)=>{
-    day_.ex.forEach((ex, e)=>{
-      ex[3].forEach((v, vi)=>{ wSet(d, e, vi, g, wGet(d, e, vi, gym)); });
-    });
+/* ── базовые действия ── */
+const setDay = i => { view="day"; day=i; drawHeader(); drawList(); save(true); };
+const setGym = i => { gym=i; drawHeader(); drawList(); save(true); };
+const setVar = (e,v) => { cur(day,e).v=+v; drawList(); save(true); };
+const upd = (e,i,f,val) => { cur(day,e).sets[i][f]=val; drawStat(); save(true); };
+const tog = (e,i) => { const s=cur(day,e).sets[i]; s.done=!s.done;
+  if(s.done&&!s.w) s.w=String(recWeight(day,e)||""); drawList(); save(true); };
+
+/* ── скрытие / возврат ── */
+function hideEx(e){
+  const n=DAYS[day].ex[e][0];
+  custom.hidden=custom.hidden||{};
+  custom.hidden[dk(day)]=(custom.hidden[dk(day)]||[]).concat([n]);
+  saveCustom(); drawHeader(); drawList(); toast("Убрано с экрана — вернуть можно внизу");
+};
+function showHidden(){
+  const list = hiddenList(day);
+  openModal("Скрытые упражнения",
+    `<div class="mnote">Они остались в программе, просто не показываются в этот день. Нажми, чтобы вернуть.</div>`
+    + list.map(n=>`<button class="mitem" onclick="unhide('${esc(n)}')">${n}<small>вернуть</small></button>`).join(""));
+};
+function unhide(n){
+  custom.hidden[dk(day)]=hiddenList(day).filter(x=>x!==n);
+  if(!custom.hidden[dk(day)].length) delete custom.hidden[dk(day)];
+  saveCustom(); closeModal(); drawHeader(); drawList(); toast("Возвращено");
+};
+
+/* ── схема подходов ── */
+const SCHEMES = ["5×5","4×6","4×8","4×10","4×12","3×10","3×12","3×15","3×20"];
+function editScheme(e){
+  const ex=DAYS[day].ex[e];
+  openModal("Схема подходов",
+    `<div class="mnote">${ex[0]}<br>сейчас: <b>${ex[1]}</b></div>`
+    + SCHEMES.map(s=>`<button class="mitem" onclick="setScheme(${e},'${s}')">${s}<small>${parseInt(s)} подх.</small></button>`).join("")
+    + `<button class="mitem" onclick="setSchemeCustom(${e})">Своя схема…</button>`);
+};
+function setScheme(e,s){
+  const ex=DAYS[day].ex[e];
+  let n=parseInt(s); if(!n||n<1||n>10) n=3;
+  ex[1]=s; ex[2]=n;
+  custom.schemes=custom.schemes||{};
+  custom.schemes[dk(day)+"|"+ex[0]]={s:s,n:n};
+  saveCustom(); closeModal(); drawList(); toast("Схема "+s);
+};
+function setSchemeCustom(e){
+  const s=prompt("Схема (например 6×8):","4×8"); if(!s) return;
+  setScheme(e,s.replace("x","×"));
+};
+
+/* ── база упражнений ── */
+function allExercises(){
+  const map={};
+  BASE.forEach((d,di)=>d.ex.forEach(ex=>{
+    map[ex[0]] = map[ex[0]] || {name:ex[0], scheme:ex[1], sets:ex[2], vars:ex[3], from:d.name};
+  }));
+  Object.keys(custom.ex||{}).forEach(k=>(custom.ex[k]||[]).forEach(x=>{
+    map[x[0]] = map[x[0]] || {name:x[0], scheme:x[1], sets:x[2], vars:x[3], from:"мои"};
+  }));
+  return Object.values(map);
+}
+function showBase(){
+  const all = allExercises();
+  const groups = {};
+  all.forEach(x=>{ (groups[x.from]=groups[x.from]||[]).push(x); });
+  let html = `<div class="mnote">Нажми упражнение — выберешь, в какой день его добавить. Оно встанет наверх списка, дальше двигаешь стрелками.</div>`;
+  Object.keys(groups).forEach(g=>{
+    html += `<div class="mgroup">${g}</div>`;
+    html += groups[g].map(x=>`<button class="mitem" onclick="pickDayFor('${esc(x.name)}')">${x.name}<small>${x.scheme}</small></button>`).join("");
   });
-  GYMS.push(name.trim());
-  custom.gyms = GYMS.slice();
-  gym = g;
+  openModal("База упражнений", html);
+};
+function pickDayFor(name){
+  const opts = DAYS.map((d,i)=>`<button class="mitem" onclick="addFromBase('${esc(name)}',${i})">${d.name}${d.temp?' <small>разовая</small>':''}</button>`).join("");
+  openModal("В какой день добавить?", `<div class="mnote">${name}</div>`+opts);
+};
+function addFromBase(name, d){
+  const src = allExercises().find(x=>x.name===name);
+  if(!src) return;
+  if(DAYS[d].ex.some(q=>q[0]===name)){
+    // уже есть — просто вернём, если было скрыто
+    if(isHidden(d,name)){
+      custom.hidden[dk(d)]=hiddenList(d).filter(x=>x!==name);
+      saveCustom(); closeModal(); setDay(d); toast("Возвращено в день");
+    } else { closeModal(); setDay(d); toast("Это упражнение уже есть в дне"); }
+    return;
+  }
+  const item=[src.name, src.scheme, src.sets, src.vars.map(v=>[v[0],v[1].slice(),true])];
+  custom.ex=custom.ex||{}; custom.ex[dk(d)]=custom.ex[dk(d)]||[];
+  custom.ex[dk(d)].unshift(item);
+  DAYS[d].ex.unshift([item[0],item[1],item[2],item[3],true]);
+  custom.order=custom.order||{}; custom.order[dk(d)]=DAYS[d].ex.map(x=>x[0]);
+  saveCustom(); closeModal(); setDay(d); toast("Добавлено наверх списка");
+};
+
+/* ── разовая тренировка ── */
+function addTempDay(){
+  const n=prompt("Название разовой тренировки:","Только плечи");
+  if(!n||!n.trim()) return;
+  const id="t"+Date.now().toString(36);
+  custom.temp=custom.temp||[];
+  custom.temp.push({id:id, name:n.trim(), ex:[]});
+  saveCustom(); applyCustom();
+  day=DAYS.length-1; view="day";
+  drawHeader(); drawList();
+  toast("Пустой день создан — добавь упражнения из базы 📚");
+};
+function delTempDay(){
+  if(!DAYS[day].temp) return;
+  if(!confirm("Удалить «"+DAYS[day].name+"»? Записанные тренировки останутся в истории.")) return;
+  const id=DAYS[day].id;
+  custom.temp=(custom.temp||[]).filter(t=>t.id!==id);
+  Object.keys(state).forEach(k=>{ if(k.startsWith(id+":")) delete state[k]; });
+  Object.keys(last).forEach(k=>{ if(k.startsWith(id+":")) delete last[k]; });
+  delete (custom.hidden||{})[id]; delete (custom.order||{})[id]; delete (custom.ex||{})[id];
+  saveCustom(); applyCustom(); day=0; drawHeader(); drawList(); save(true); toast("Удалено");
+};
+
+/* ── залы ── */
+function addGym(){
+  const n=prompt("Название зала:"); if(!n||!n.trim()) return;
+  const g=GYMS.length;
+  DAYS.forEach((dd,d)=>dd.ex.forEach((ex,e)=>ex[3].forEach((v,vi)=>wSet(d,e,vi,g,wGet(d,e,vi,gym)))));
+  GYMS.push(n.trim()); custom.gyms=GYMS.slice(); gym=g;
   saveCustom(); drawHeader(); drawList();
   toast("Зал добавлен — веса скопированы, поправь тапом по цифре");
 };
-
-window.editGym = function(){
-  const cur_ = GYMS[gym];
-  const r = prompt("Название зала (стереть и сохранить = удалить):", cur_);
-  if(r === null) return;
+function editGym(){
+  const c=GYMS[gym];
+  const r=prompt("Название зала (стереть и сохранить = удалить):",c);
+  if(r===null) return;
   if(!r.trim()){
-    if(GYMS.length < 2){ toast("Последний зал не удалить"); return; }
-    if(!confirm("Удалить зал «"+cur_+"» вместе с его весами?")) return;
-    const del = gym;
-    GYMS.splice(del,1);
-    // веса удалённого зала выбрасываем, остальные сдвигаем
-    const nw = {};
+    if(GYMS.length<2){ toast("Последний зал не удалить"); return; }
+    if(!confirm("Удалить зал «"+c+"» вместе с весами?")) return;
+    const del=gym; GYMS.splice(del,1);
+    const nw={};
     Object.keys(custom.w||{}).forEach(k=>{
-      const [d,e,vi,g] = k.split(":").map(Number);
-      if(g === del) return;
-      nw[wKey(d,e,vi, g > del ? g-1 : g)] = custom.w[k];
+      const p=k.split(":"), g=+p[3];
+      if(g===del) return;
+      nw[p[0]+":"+p[1]+":"+p[2]+":"+(g>del?g-1:g)]=custom.w[k];
     });
-    custom.w = nw;
-    custom.gyms = GYMS.slice();
-    gym = 0;
-    saveCustom(); drawHeader(); drawList(); toast("Зал удалён");
-    return;
+    custom.w=nw; custom.gyms=GYMS.slice(); gym=0;
+    saveCustom(); drawHeader(); drawList(); toast("Зал удалён"); return;
   }
-  GYMS[gym] = r.trim();
-  custom.gyms = GYMS.slice();
-  saveCustom(); drawHeader(); drawList();
+  GYMS[gym]=r.trim(); custom.gyms=GYMS.slice(); saveCustom(); drawHeader(); drawList();
 };
 
-window.move = function(e, dir){
-  const list = DAYS[day].ex;
-  const t = e + dir;
-  if(t < 0 || t >= list.length) return;
-
-  // меняем местами сами упражнения
-  [list[e], list[t]] = [list[t], list[e]];
-
-  // и всё, что к ним привязано: заполненные подходы и прошлая тренировка
-  [[state,'state'],[last,'last']].forEach(([obj])=>{
-    const a = obj[key(day,e)], b = obj[key(day,t)];
-    if(a===undefined && b===undefined) return;
-    if(b===undefined) delete obj[key(day,e)]; else obj[key(day,e)] = b;
-    if(a===undefined) delete obj[key(day,t)]; else obj[key(day,t)] = a;
+/* ── перемещение / варианты / упражнения ── */
+function move(e,dir){
+  const L=DAYS[day].ex;
+  const vis=L.map((x,i)=>i).filter(i=>!isHidden(day,L[i][0]));
+  const at=vis.indexOf(e), t=vis[at+dir];
+  if(t===undefined) return;
+  [L[e],L[t]]=[L[t],L[e]];
+  [state,last].forEach(obj=>{
+    const a=obj[key(day,e)], b=obj[key(day,t)];
+    if(a===undefined&&b===undefined) return;
+    if(b===undefined) delete obj[key(day,e)]; else obj[key(day,e)]=b;
+    if(a===undefined) delete obj[key(day,t)]; else obj[key(day,t)]=a;
   });
-
-  // custom-варианты тоже переезжают вместе с упражнением
-  const ca = custom.vars[key(day,e)], cb = custom.vars[key(day,t)];
-  if(ca!==undefined || cb!==undefined){
-    if(cb===undefined) delete custom.vars[key(day,e)]; else custom.vars[key(day,e)] = cb;
-    if(ca===undefined) delete custom.vars[key(day,t)]; else custom.vars[key(day,t)] = ca;
+  const ca=custom.vars[key(day,e)], cb=custom.vars[key(day,t)];
+  if(ca!==undefined||cb!==undefined){
+    if(cb===undefined) delete custom.vars[key(day,e)]; else custom.vars[key(day,e)]=cb;
+    if(ca===undefined) delete custom.vars[key(day,t)]; else custom.vars[key(day,t)]=ca;
   }
-
-  custom.order = custom.order || {};
-  custom.order[day] = list.map(x=>x[0]);
+  custom.order=custom.order||{}; custom.order[dk(day)]=L.map(x=>x[0]);
   saveCustom(); save(true); drawList();
 };
-
-window.addVar = function(e){
-  const name = prompt("Название упражнения:");
-  if(!name || !name.trim()) return;
-  const w = askNum("Рабочий вес, кг (0 — если без веса):", 0);
-  if(w===null) return;
-  const k = key(day,e);
-  custom.vars[k] = custom.vars[k] || [];
-  custom.vars[k].push([name.trim(), [w,w,w], true]);
-  DAYS[day].ex[e][3].push([name.trim(), [w,w,w], true]);
-  cur(day,e).v = DAYS[day].ex[e][3].length - 1;
+function addVar(e){
+  const n=prompt("Название упражнения:"); if(!n||!n.trim()) return;
+  const w=askNum("Рабочий вес, кг (0 — без веса):",0); if(w===null) return;
+  const k=key(day,e); custom.vars[k]=custom.vars[k]||[];
+  const arr=[]; arr[gym]=w;
+  custom.vars[k].push([n.trim(),arr,true]);
+  DAYS[day].ex[e][3].push([n.trim(),arr,true]);
+  const vi=DAYS[day].ex[e][3].length-1;
+  wSet(day,e,vi,gym,w); cur(day,e).v=vi;
   saveCustom(); drawList(); toast("Вариант добавлен");
 };
-
-window.delVar = function(e){
-  const st = cur(day,e);
-  const v  = DAYS[day].ex[e][3][st.v];
-  if(!v || !v[2]) return;
-  if(!confirm("Удалить «"+v[0]+"»?")) return;
-  DAYS[day].ex[e][3].splice(st.v,1);
-  const k = key(day,e);
-  custom.vars[k] = (custom.vars[k]||[]).filter(x=>x[0]!==v[0]);
-  st.v = 0; saveCustom(); drawList(); toast("Удалено");
-};
-
-window.editW = function(e){
-  const st = cur(day,e);
-  const v  = DAYS[day].ex[e][3][st.v];
-  const w  = askNum("Рабочий вес в зале «"+GYMS[gym]+"», кг:", wGet(day,e,st.v,gym));
+function editW(e){
+  const st=cur(day,e);
+  const w=askNum("Рабочий вес в зале «"+GYMS[gym]+"», кг:", wGet(day,e,st.v,gym));
   if(w===null) return;
-  wSet(day,e,st.v,gym,w);
-  saveCustom(); drawList(); toast("Вес обновлён");
+  wSet(day,e,st.v,gym,w); saveCustom(); drawList(); toast("Вес обновлён");
+};
+function addEx(){
+  const n=prompt("Название упражнения:"); if(!n||!n.trim()) return;
+  const sc=prompt("Схема (например 3×12):","3×12")||"3×12";
+  let k=parseInt(sc); if(!k||k<1||k>10) k=3;
+  const w=askNum("Рабочий вес, кг (0 — без веса):",0); if(w===null) return;
+  const arr=[]; arr[gym]=w;
+  const item=[n.trim(), sc.replace("x","×"), k, [[n.trim(),arr,true]]];
+  custom.ex=custom.ex||{}; custom.ex[dk(day)]=custom.ex[dk(day)]||[];
+  custom.ex[dk(day)].unshift(item);
+  DAYS[day].ex.unshift([item[0],item[1],item[2],item[3],true]);   // НАВЕРХ списка
+  wSet(day,0,0,gym,w);
+  custom.order=custom.order||{}; custom.order[dk(day)]=DAYS[day].ex.map(x=>x[0]);
+  saveCustom(); drawList(); toast("Добавлено наверх — двигай стрелками");
 };
 
-window.addEx = function(){
-  const name = prompt("Название упражнения:");
-  if(!name || !name.trim()) return;
-  const scheme = prompt("Схема (например 3×12):", "3×12") || "3×12";
-  let n = parseInt(scheme); if(!n || n<1 || n>8) n = 3;
-  const w = askNum("Рабочий вес, кг (0 — если без веса):", 0);
-  if(w===null) return;
-  const item = [name.trim(), scheme, n, [[name.trim(),[w,w,w],true]]];
-  custom.ex[day] = custom.ex[day] || [];
-  custom.ex[day].push(item);
-  DAYS[day].ex.push([item[0],item[1],item[2],item[3].map(v=>[v[0],v[1].slice(),true]),true]);
-  if(custom.order && custom.order[day]) custom.order[day].push(item[0]);
-  saveCustom(); drawList(); toast("Упражнение добавлено");
-};
-
-window.setDay = i => { day=i; gym=DAYS[i].gym; drawHeader(); drawList(); };
-window.setGym = i => { gym=i; drawHeader(); drawList(); };
-window.setVar = (e,v) => { cur(day,e).v=+v; drawList(); };
-window.upd = (e,i,f,val) => { cur(day,e).sets[i][f]=val; drawStat(); save(true); };
-window.tog = (e,i) => {
-  const s = cur(day,e).sets[i];
-  s.done = !s.done;
-  if(s.done && !s.w) s.w = String(recWeight(day,e)||"");
-  drawList(); save(true);
-};
-
-let t=null;
-function toast(msg){
-  const el=$("#toast"); el.textContent=msg; el.classList.add("show");
-  clearTimeout(t); t=setTimeout(()=>el.classList.remove("show"),1600);
+/* ── модалка ── */
+function openModal(title, html){
+  $("#modal").innerHTML = `<div class="mwrap"><div class="mhead"><b>${title}</b>
+    <button class="btn ghost" onclick="closeModal()">Закрыть</button></div>${html}</div>`;
+  $("#modal").style.display="block";
 }
+function closeModal(){ $("#modal").style.display="none"; };
+function esc(t){ return String(t).replace(/'/g,"\\'"); }
 
-let saveTimer=null;
-async function save(silent){
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(async ()=>{
-    try{
-      localStorage.setItem("gym:current", JSON.stringify({state,gym,day}));
-      if(!silent) toast("Сохранено");
-    }catch(err){ if(!silent) toast("Не сохранилось"); }
-  }, silent?600:0);
+/* ── тост / сохранение ── */
+let tm=null;
+function toast(m){ const el=$("#toast"); el.textContent=m; el.classList.add("show");
+  clearTimeout(tm); tm=setTimeout(()=>el.classList.remove("show"),1900); }
+let sv=null;
+function save(silent){
+  clearTimeout(sv);
+  sv=setTimeout(()=>{ try{
+    localStorage.setItem("gym:current", JSON.stringify({state,gym,day}));
+    if(!silent) toast("Сохранено");
+  }catch(e){} }, silent?500:0);
 }
 
 $("#saveBtn").onclick = ()=>{
   try{
-    const stamp = new Date().toISOString().slice(0,10);
-    // в историю пишем НАЗВАНИЯ и цифры — так запись не поедет при перестановке упражнений
-    const items = DAYS[day].ex.map((ex,e)=>({
-      name: ex[0],
-      sets: cur(day,e).sets.filter(s=>s.w||s.r).map(s=>({w:s.w, r:s.r}))
-    })).filter(x=>x.sets.length);
+    const stamp=new Date().toISOString().slice(0,10);
+    const items=DAYS[day].ex.map((ex,e)=>({name:ex[0],
+      sets:cur(day,e).sets.filter(s=>s.w||s.r).map(s=>({w:s.w,r:s.r}))})).filter(x=>x.sets.length);
     if(!items.length){ toast("Нечего записывать — заполни подходы"); return; }
-    localStorage.setItem("gym:hist:"+stamp+":"+day, JSON.stringify({date:stamp, day, items}));
-    localStorage.setItem("gym:last:"+day, JSON.stringify(state));
-    last={}; Object.keys(state).forEach(k=>{ if(k.startsWith(day+":")) last[k]=JSON.parse(JSON.stringify(state[k])); });
+    localStorage.setItem("gym:hist:"+stamp+":"+dk(day), JSON.stringify({date:stamp, day:dk(day), name:DAYS[day].name, items}));
+    // ВАЖНО: обновляем «прошлый раз» только для этого дня, остальные не трогаем
+    Object.keys(state).forEach(k=>{ if(k.startsWith(dk(day)+":")) last[k]=JSON.parse(JSON.stringify(state[k])); });
+    localStorage.setItem("gym:last:"+dk(day), JSON.stringify(last));
     DAYS[day].ex.forEach((ex,e)=>cur(day,e).sets.forEach(s=>{s.w="";s.r="";s.done=false;}));
     save(true); drawList(); toast("Тренировка записана");
   }catch(e){ toast("Ошибка записи"); }
 };
-
-// ── История и прогресс ──
-function histFor(d){
-  const out=[];
-  for(let i=0;i<localStorage.length;i++){
-    const k=localStorage.key(i);
-    if(!k || !k.startsWith("gym:hist:")) continue;
-    if(!k.endsWith(":"+d)) continue;
-    try{ const o=JSON.parse(localStorage.getItem(k)); if(o && o.items) out.push(o); }catch(e){}
-  }
-  return out.sort((a,b)=> a.date < b.date ? 1 : -1);
-}
-function maxW(sets){
-  let m=0; sets.forEach(s=>{ const w=parseFloat(String(s.w).replace(",",".")); if(w>m) m=w; });
-  return m;
-}
-function spark(vals){
-  if(vals.length<2) return "";
-  const w=104,h=26,mn=Math.min(...vals),mx=Math.max(...vals),rg=(mx-mn)||1;
-  const pts=vals.map((v,i)=>[ (i/(vals.length-1))*w, h-2-((v-mn)/rg)*(h-6) ]);
-  const dd=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
-  const lastP=pts[pts.length-1];
-  return `<svg width="${w}" height="${h}" style="display:block">
-    <path d="${dd}" stroke="#C8102E" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="${lastP[0].toFixed(1)}" cy="${lastP[1].toFixed(1)}" r="2.6" fill="#C8102E"/></svg>`;
-}
-window.showHist = function(){
-  const H = histFor(day);
-  const box = $("#hist");
-  if(!H.length){
-    box.innerHTML = `<div class="hwrap"><div class="hhead"><b>История — ${DAYS[day].name||DAYS[day].short.replace(/<br>/g," ")}</b>
-      <button class="btn ghost" onclick="hideHist()">Закрыть</button></div>
-      <div class="hempty">Пока пусто. Заполни подходы и нажми «Готово» — тренировка попадёт сюда.</div></div>`;
-    box.style.display="block"; return;
-  }
-  // собираем по упражнениям
-  const names=[]; H.forEach(h=>h.items.forEach(it=>{ if(!names.includes(it.name)) names.push(it.name); }));
-  const cards = names.map(n=>{
-    const rows = H.filter(h=>h.items.some(it=>it.name===n))
-      .map(h=>({date:h.date, sets:h.items.find(it=>it.name===n).sets}));
-    const series = rows.map(r=>maxW(r.sets)).reverse().filter(v=>v>0);
-    const first=series[0], lastv=series[series.length-1];
-    let trend="";
-    if(series.length>1 && first){
-      const dlt=+(lastv-first).toFixed(1);
-      trend = dlt>0 ? `<span class="up">+${dlt} кг</span>`
-            : dlt<0 ? `<span class="dn">${dlt} кг</span>`
-            : `<span class="fl">без изменений</span>`;
-    }
-    const list = rows.slice(0,8).map(r=>{
-      const d=r.date.slice(8,10)+"."+r.date.slice(5,7);
-      return `<div class="hrow"><span class="hdate">${d}</span>
-        <span class="hsets">${r.sets.map(s=>`${s.w||"—"}<i>/${s.r||"?"}</i>`).join("  ")}</span></div>`;
-    }).join("");
-    return `<div class="hcard">
-      <div class="hname">${n}</div>
-      <div class="htop2">${trend}<span class="hcnt">${rows.length} трен.</span>${spark(series)}</div>
-      ${list}</div>`;
-  }).join("");
-  box.innerHTML = `<div class="hwrap"><div class="hhead"><b>История — ${DAYS[day].name||DAYS[day].short.replace(/<br>/g," ")}</b>
-    <button class="btn ghost" onclick="hideHist()">Закрыть</button></div>${cards}</div>`;
-  box.style.display="block";
-};
-window.hideHist = function(){ $("#hist").style.display="none"; };
-
 $("#clearBtn").onclick = ()=>{
-  DAYS[day].ex.forEach((ex,e)=>{ cur(day,e).sets.forEach(s=>{ s.w=""; s.r=""; s.done=false; }); });
+  DAYS[day].ex.forEach((ex,e)=>cur(day,e).sets.forEach(s=>{s.w="";s.r="";s.done=false;}));
   drawList(); save(true); toast("Очищено");
 };
 
-// 1) РИСУЕМ СРАЗУ — экран не должен ждать хранилище
-try { drawHeader(); drawList(); }
-catch(err){ document.getElementById("list").innerHTML =
-  '<div style="padding:20px;color:#C8102E">Ошибка отрисовки: '+err.message+'</div>'; }
+/* ── история ── */
+function histFor(dkey){
+  const out=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(!k||!k.startsWith("gym:hist:")) continue;
+    if(!k.endsWith(":"+dkey)) continue;
+    try{ const o=JSON.parse(localStorage.getItem(k)); if(o&&o.items) out.push(o); }catch(e){}
+  }
+  return out.sort((a,b)=>a.date<b.date?1:-1);
+}
+function maxW(sets){ let m=0; sets.forEach(s=>{const w=parseFloat(String(s.w).replace(",",".")); if(w>m)m=w;}); return m; }
+function spark(v){
+  if(v.length<2) return "";
+  const w=104,h=26,mn=Math.min(...v),mx=Math.max(...v),rg=(mx-mn)||1;
+  const p=v.map((x,i)=>[(i/(v.length-1))*w, h-2-((x-mn)/rg)*(h-6)]);
+  const d=p.map((q,i)=>(i?"L":"M")+q[0].toFixed(1)+" "+q[1].toFixed(1)).join(" ");
+  const L=p[p.length-1];
+  return `<svg width="${w}" height="${h}" style="display:block"><path d="${d}" stroke="#C8102E" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${L[0].toFixed(1)}" cy="${L[1].toFixed(1)}" r="2.6" fill="#C8102E"/></svg>`;
+}
+function showHist(){
+  const H=histFor(dk(day)), box=$("#hist");
+  if(!H.length){
+    box.innerHTML=`<div class="hwrap"><div class="hhead"><b>История — ${DAYS[day].name}</b>
+      <button class="btn ghost" onclick="hideHist()">Закрыть</button></div>
+      <div class="hempty">Пока пусто. Заполни подходы и нажми «Готово».</div></div>`;
+    box.style.display="block"; return;
+  }
+  const names=[]; H.forEach(h=>h.items.forEach(it=>{ if(!names.includes(it.name)) names.push(it.name); }));
+  const cards=names.map(n=>{
+    const rows=H.filter(h=>h.items.some(it=>it.name===n))
+      .map(h=>({date:h.date, sets:h.items.find(it=>it.name===n).sets}));
+    const ser=rows.map(r=>maxW(r.sets)).reverse().filter(x=>x>0);
+    let tr="";
+    if(ser.length>1&&ser[0]){
+      const d=+(ser[ser.length-1]-ser[0]).toFixed(1);
+      tr = d>0?`<span class="up">+${d} кг</span>`:d<0?`<span class="dn">${d} кг</span>`:`<span class="fl">без изменений</span>`;
+    }
+    const list=rows.slice(0,8).map(r=>{
+      const dd=r.date.slice(8,10)+"."+r.date.slice(5,7);
+      return `<div class="hrow"><span class="hdate">${dd}</span><span class="hsets">${r.sets.map(s=>`${s.w||"—"}<i>/${s.r||"?"}</i>`).join("  ")}</span></div>`;
+    }).join("");
+    return `<div class="hcard"><div class="hname">${n}</div>
+      <div class="htop2">${tr}<span class="hcnt">${rows.length} трен.</span>${spark(ser)}</div>${list}</div>`;
+  }).join("");
+  box.innerHTML=`<div class="hwrap"><div class="hhead"><b>История — ${DAYS[day].name}</b>
+    <button class="btn ghost" onclick="hideHist()">Закрыть</button></div>${cards}</div>`;
+  box.style.display="block";
+};
+function hideHist(){ $("#hist").style.display="none"; };
 
-// 2) хранилище — localStorage телефона
+/* ── экспорт / импорт ── */
+function exportData(){
+  const dump={v:3, saved:new Date().toISOString(), state, last, custom, gyms:GYMS,
+    hist:Object.keys(localStorage).filter(k=>k.startsWith("gym:hist:"))
+      .reduce((a,k)=>(a[k]=localStorage.getItem(k),a),{})};
+  const blob=new Blob([JSON.stringify(dump,null,1)],{type:"application/json"});
+  const name="trenirovki-"+new Date().toISOString().slice(0,10)+".json";
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([blob],name)]}))
+    navigator.share({files:[new File([blob],name,{type:"application/json"})],title:"Тренировки"});
+  else { const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+  toast("Файл готов");
+};
+function importData(inp){
+  const f=inp.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ try{
+    const o=JSON.parse(rd.result);
+    state=o.state||{}; last=o.last||{};
+    if(o.custom){ custom=Object.assign({vars:{},ex:{},order:{},w:{},hidden:{},schemes:{},temp:[]}, o.custom); }
+    if(Array.isArray(o.gyms)&&o.gyms.length) GYMS=o.gyms.slice();
+    else if(custom.gyms) GYMS=custom.gyms.slice();
+    if(o.hist) Object.keys(o.hist).forEach(k=>localStorage.setItem(k,o.hist[k]));
+    saveCustom(); applyCustom(); save(true); drawHeader(); drawList(); toast("Данные загружены");
+  }catch(e){ toast("Файл не читается"); } };
+  rd.readAsText(f);
+};
+
+
+/* ── экспорт для onclick в разметке ── */
+Object.assign(window, {addEx, addFromBase, addGym, addTempDay, addVar, closeModal, delTempDay, editGym, editScheme, editW, exportData, hideEx, hideHist, importData, move, pickDayFor, setDay, setGym, setScheme, setSchemeCustom, setVar, showBase, showHidden, showHist, tog, unhide, upd});
+
+/* ── запуск ── */
+buildDays();
+try{ drawHeader(); drawList(); }
+catch(err){ $("#list").innerHTML='<div style="padding:20px;color:#C8102E">Ошибка: '+err.message+'</div>'; }
+
 (function load(){
   try{
-    const rawC = localStorage.getItem("gym:custom");
-    if(rawC){
-      custom = JSON.parse(rawC);
-      custom.w = custom.w || {};
-      if(Array.isArray(custom.gyms) && custom.gyms.length) GYMS = custom.gyms.slice();
-      applyCustom();
-    }
-    const raw = localStorage.getItem("gym:current");
-    if(raw){
-      const o = JSON.parse(raw);
-      state = o.state || {};
-      if(typeof o.gym === "number" && o.gym < GYMS.length) gym = o.gym;
-      if(typeof o.day === "number") day = o.day;
-    }
+    const rc=localStorage.getItem("gym:custom");
+    if(rc){ custom=Object.assign({vars:{},ex:{},order:{},w:{},hidden:{},schemes:{},temp:[]}, JSON.parse(rc));
+      if(Array.isArray(custom.gyms)&&custom.gyms.length) GYMS=custom.gyms.slice(); }
+    applyCustom();
+    const r=localStorage.getItem("gym:current");
+    if(r){ const o=JSON.parse(r); state=o.state||{};
+      if(typeof o.gym==="number"&&o.gym<GYMS.length) gym=o.gym;
+      if(typeof o.day==="number"&&o.day<DAYS.length) day=o.day; }
+    // «прошлый раз» собираем по ВСЕМ дням
     for(let d=0; d<DAYS.length; d++){
-      const r = localStorage.getItem("gym:last:"+d);
-      if(r){ const o=JSON.parse(r); Object.keys(o).forEach(k=>{ if(k.startsWith(d+":")) last[k]=o[k]; }); }
+      const x=localStorage.getItem("gym:last:"+dk(d));
+      if(x){ const o=JSON.parse(x); Object.keys(o).forEach(k=>{ last[k]=o[k]; }); }
     }
     drawHeader(); drawList();
   }catch(e){}
 })();
 
-// ── экспорт / импорт: файл уходит в «Файлы», iCloud, куда угодно ──
-window.exportData = function(){
-  const dump = {v:2, saved:new Date().toISOString(), state, last, custom,
-                hist: Object.keys(localStorage).filter(k=>k.startsWith("gym:hist:"))
-                        .reduce((a,k)=>(a[k]=localStorage.getItem(k),a),{})};
-  const blob = new Blob([JSON.stringify(dump,null,1)], {type:"application/json"});
-  const name = "trenirovki-"+new Date().toISOString().slice(0,10)+".json";
-  if(navigator.share && navigator.canShare && navigator.canShare({files:[new File([blob],name)]})){
-    navigator.share({files:[new File([blob],name,{type:"application/json"})], title:"Тренировки"});
-  } else {
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob); a.download=name; a.click();
-  }
-  toast("Файл готов");
-};
-window.importData = function(input){
-  const f = input.files[0]; if(!f) return;
-  const rd = new FileReader();
-  rd.onload = () => {
-    try{
-      const o = JSON.parse(rd.result);
-      state = o.state || {}; last = o.last || {};
-      if(o.custom){ custom = o.custom; saveCustom(); applyCustom(); }
-      if(o.hist) Object.keys(o.hist).forEach(k=>localStorage.setItem(k,o.hist[k]));
-      localStorage.setItem("gym:current", JSON.stringify({state,gym,day}));
-      drawHeader(); drawList(); toast("Данные загружены");
-    }catch(e){ toast("Файл не читается"); }
-  };
-  rd.readAsText(f);
-};
-
-if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
 </html>
