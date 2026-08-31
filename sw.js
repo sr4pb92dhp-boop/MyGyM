@@ -1,5 +1,5 @@
 // v3 — сеть в приоритете, кэш как запасной вариант
-const CACHE = "gym-v26";
+const CACHE = "gym-v27";
 
 self.addEventListener("install", e => {
   self.skipWaiting();                       // не ждём закрытия старых вкладок
