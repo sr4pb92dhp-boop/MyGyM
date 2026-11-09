@@ -1,8 +1,8 @@
-const CACHE = "gym-v411";
+const CACHE = "gym-v413";
 self.addEventListener("install", e => { self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(["index.html","manifest.json"])).catch(()=>{})); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys()
-  .then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))
+  .then(ks => Promise.all(ks.filter(k => k.startsWith("gym-v") && k !== CACHE).map(k => caches.delete(k))))
   .then(() => self.clients.claim())); });
 self.addEventListener("fetch", e => {
   if(e.request.method !== "GET") return;
