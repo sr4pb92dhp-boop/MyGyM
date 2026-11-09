@@ -213,11 +213,13 @@ header{position:relative;border:0;padding:calc(20px + env(safe-area-inset-top)) 
 @media(min-width:650px){header{padding-top:32px}.title{font-size:34px}.wrap{padding-bottom:20px}.mwrap{margin-top:48px}.day{flex-basis:125px}}
 @media(max-width:359px){header,.wrap{padding-left:14px;padding-right:14px}.foot{padding-left:14px;padding-right:14px}.title{font-size:25px}.program-top b{font-size:14px}.board-num{font-size:32px}}
 
+
+.save-actions{display:flex;gap:8px}.save-actions .btn.go{flex:1;min-width:0;width:auto;font-size:13px;letter-spacing:0}.draft-save{flex:0 0 100px;border:1px solid var(--line);border-radius:14px;background:var(--surface2);color:var(--chalk);font-size:12px;font-weight:600;line-height:1.3;cursor:pointer}.draft-save:disabled{opacity:.4}.volume-options{display:flex;gap:8px;margin:8px 0 10px}.volume-option{flex:1;min-width:0;background:var(--surface2);border:1px solid var(--line);color:var(--chalk);border-radius:14px;padding:12px 9px;text-align:left;cursor:pointer}.volume-option.selected{border-color:var(--accent);background:#382329}.volume-option small{display:block;margin-top:5px;color:var(--mute);font-size:10px;line-height:1.45}.cycle-preview{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:16px}.cycle-preview span{background:var(--surface2);padding:9px 7px;border-radius:10px;font-size:11px}.cycle-preview small{display:block;color:#ff7078;font-size:10px;margin-bottom:3px}.plan-day{border:1px solid var(--line);border-radius:12px;padding:12px;margin:9px 0;background:#20242b}.plan-day summary{font-size:13px;cursor:pointer;font-weight:600}.plan-day small{display:block;font-size:10px;color:var(--mute);font-weight:400;margin-top:4px}.plan-day ol{padding-left:20px;font-size:12px;line-height:1.8;color:var(--chalk)}.plan-day li span{color:var(--mute);white-space:nowrap}.program-action{margin-top:12px}.cycle-toolbar{display:flex;align-items:center;gap:12px;margin:-3px 0 16px}.cycle-toolbar small{flex:1;color:var(--mute);font-size:11px}.cycle-toolbar button{border:1px solid var(--line);background:var(--surface);border-radius:10px;color:#ff9da4;font-size:11px;padding:10px;cursor:pointer}.exercise-choice>span{display:block;font-size:11px;color:var(--mute);margin-bottom:6px}.exercise-choice select{padding-right:25px}.cycle-warning{color:#efb4bd;font-size:12px;margin:9px 0}
 </style>
 </head>
 <body>
 <header>
-  <div class="hero-top"><div class="brand">MYGYM<span class="release">4.13</span></div><div class="hero-actions">
+  <div class="hero-top"><div class="brand">MYGYM<span class="release">4.14</span></div><div class="hero-actions">
     <button class="icon-btn" onclick="showHist()" title="История тренировок" aria-label="История тренировок"><svg viewBox="0 0 24 24"><path d="M4 4v16h16M8 15l4-5 4 2 4-7"/></svg></button>
     <button class="icon-btn" onclick="mainMenu()" title="Меню" aria-label="Меню"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>
   </div></div>
@@ -229,12 +231,12 @@ header{position:relative;border:0;padding:calc(20px + env(safe-area-inset-top)) 
   </summary><div class="gym-options"><div class="gym-options-label">ВЫБЕРИ ЗАЛ</div><div id="gymChoices"></div><div class="gym-options-actions"><button class="gym-choice add-choice" onclick="document.getElementById('gymPicker').open=false;addGym()">＋ Добавить зал</button><button class="gym-choice manage-choice" onclick="document.getElementById('gymPicker').open=false;editGym()">Настроить выбранный зал</button></div></div></details></div>
 </header>
 <div class="wrap">
-  <div class="sub" id="daySub"></div>
+  <div class="sub" id="daySub"></div><div id="cycleToolbar"></div>
   <div id="list"></div>
 </div>
 <div class="foot"><div class="foot-in">
   <div class="stat" id="stat"></div>
-  <button class="btn go" id="saveBtn">СОХРАНИТЬ ТРЕНИРОВКУ</button>
+  <div class="save-actions"><button class="draft-save" onclick="saveProgress()">Сохранить<br>прогресс</button><button class="btn go" id="saveBtn">Завершить тренировку</button></div>
 </div></div>
 
 <div class="flash" id="flash"></div>
@@ -253,7 +255,7 @@ const ready=new Promise(resolve=>{if(!window.indexedDB){fallback();resolve();ret
 function enqueue(k,v,remove){let ls=true;try{if(legacy){if(remove)legacy.removeItem(k);else legacy.setItem(k,String(v))}}catch(e){ls=false}if(!db){if(!ls)lastError=Error("Не удалось сохранить данные");return}queue=queue.then(()=>remove?new Promise((resolve,reject)=>{const t=db.transaction("kv","readwrite");t.objectStore("kv").delete(k);t.oncomplete=resolve;t.onerror=()=>reject(t.error)}):put(k,v)).then(()=>{lastError=null}).catch(e=>{if(!ls)lastError=e;if(db){try{db.close()}catch(x){}db=null;mode=ls?"localStorage fallback":"ошибка хранения"}})}
 return{ready,flush:async()=>{await ready;await queue;if(lastError)throw lastError},getItem:k=>mem.has(String(k))?mem.get(String(k)):(()=>{try{return legacy?legacy.getItem(k):null}catch(e){return null}})(),setItem:(k,v)=>{k=String(k);v=String(v);mem.set(k,v);enqueue(k,v,false)},removeItem:k=>{k=String(k);mem.delete(k);enqueue(k,null,true)},key:i=>[...mem.keys()][i]??(legacy?legacy.key(i):null),get length(){return mem.size},get mode(){return mode}}})();
 const T = {
-  kind:"his", prefix:"gym:", appv:"4.13", file:"trenirovki",
+  kind:"his", prefix:"gym:", appv:"4.14", file:"trenirovki",
   gyms:["Грисмолл","Весна","Нежинская"], accent:"#C8102E", lastPlus:false, seedId:"2026-11-09-v48",
   handRe:/гантел|махи боком/i,
   /* разовая правка старых записей: какой вариант делал и где вес был записан за пару */
@@ -288,7 +290,7 @@ const $ = s => document.querySelector(s);
 
 function blankCustom(){
   return {vars:{}, ex:{}, order:{}, gyms:null, w:{}, hidden:{}, schemes:{}, temp:[],
-          unit:{}, notes:{}, rest:120, lastExport:null, program:"classic"};
+          unit:{}, notes:{}, rest:120, lastExport:null, program:"classic", programOptions:{}, programCursors:{}};
 }
 function num(x){ const n=parseFloat(String(x==null?"":x).replace(",",".")); return isNaN(n)?0:n; }
 function fmt(n){ return String(Math.round(n*100)/100).replace(".",","); }
@@ -365,24 +367,160 @@ function applyCustom(){
 }
 
 
-const PROGRAMS=[{id:"classic",name:"Мой сплит",days:"3 дня",tag:"Текущая",desc:"Спина + бицепс · ноги + плечи · грудь + трицепс"},{id:"ppl",name:"Push / Pull / Legs",days:"3 дня",tag:"Классика",desc:"Жим → тяга → ноги по кругу; плечи в жимовой день"},{id:"upperlower",name:"Верх / Низ",days:"4 дня",tag:"Верх и низ",desc:"Верх A · низ A · верх B · низ B; подходы поделены A/B"},{id:"fullbody",name:"Full body",days:"3 дня",tag:"Всё тело",desc:"Тяга, ноги и жим распределены между A/B/C"}];
+const PROGRAMS=[
+  {id:"classic",name:"Мой сплит",days:"3 привычных дня",tag:"МОЙ СПЛИТ",desc:"Спина + бицепс · ноги + плечи · грудь + трицепс"},
+  {id:"ppl",name:"Push / Pull / Legs",days:"6 посещений · A/B",tag:"2 НЕДЕЛИ",desc:"Жим A → тяга A → ноги A → жим B → тяга B → ноги B"},
+  {id:"upperlower",name:"Верх / Низ",days:"4 посещения по кругу",tag:"ВЕРХ / НИЗ",desc:"Верх A → низ A → верх B → низ B. На следующей неделе цикл продолжается."},
+  {id:"fullbody",name:"Full body",days:"3 посещения · A/B/C",tag:"3 РАЗА В НЕДЕЛЮ",desc:"В каждом дне есть ноги, жим и тяга; дополнительные упражнения чередуются."}
+];
 function programCopy(x){return JSON.parse(JSON.stringify(x))}
-function programDay(id,name,color,ex){return{name,short:name,id:"prog:"+id+":"+name.toLowerCase().replace(/[^a-zа-я0-9]+/gi,"-"),program:true,ex}}
-function applyTrainingProgram(){const id=custom.program||"classic";if(id==="classic"||DAYS.length<3)return;const src=DAYS.map(programCopy),isShoulder=x=>/плеч|дельт|shoulder|delt|lateral raise|rear delt|мах[а-яё ]*бок|разведени[а-яё ]*в наклон/i.test(x.name);const pull=src[0].ex,lower=src[1].ex.filter(x=>!isShoulder(x)),shoulders=src[1].ex.filter(isShoulder),push=shoulders.concat(src[2].ex),extras=src.slice(3);const clone=x=>programCopy(x),reduce=x=>{const o=clone(x),n=Math.max(1,Math.ceil((+o.n||3)/2));o.n=n;o.scheme=String(o.scheme||"").replace(/^\d+/,String(n));return o};
-if(id==="ppl")DAYS=[programDay(id,"Жим","var(--green)",push.map(clone)),programDay(id,"Тяга","var(--blue)",pull.map(clone)),programDay(id,"Ноги","var(--red)",lower.map(clone)),...extras];
-else if(id==="upperlower"){const upper=pull.concat(push);DAYS=[programDay(id,"Верх A","var(--blue)",upper.map(reduce)),programDay(id,"Низ A","var(--red)",lower.map(reduce)),programDay(id,"Верх B","var(--green)",upper.map(reduce)),programDay(id,"Низ B","var(--blue)",lower.map(reduce)),...extras]}
-else if(id==="fullbody"){const groups=[pull,lower,push],buckets=[[],[],[]];groups.forEach(group=>{const load=[0,0,0];group.forEach(ex=>{const target=load.indexOf(Math.min(...load)),copy=clone(ex);buckets[target].push(copy);load[target]+=(+copy.n||3)})});DAYS=[programDay(id,"Всё тело A","var(--blue)",buckets[0]),programDay(id,"Всё тело B","var(--red)",buckets[1]),programDay(id,"Всё тело C","var(--green)",buckets[2]),...extras]}}
+function preferredProgramVariant(ex,g){
+  const matches=HIST.flatMap(r=>(r.items||[]).filter(it=>it.name===ex.name&&ex.vars.some(v=>v.name===it.v)).map(it=>({r,it})));
+  const recent=matches.find(x=>x.r.gym===GYMS[g])||matches[0],source=state[(ex.sourceDay||"0")+"||"+ex.name];
+  return recent?recent.it.v:source&&ex.vars.some(v=>v.name===source.vn)?source.vn:ex.vars[0].name;
+}
+function programDayId(id,name){return "prog:"+id+":"+name.toLowerCase().replace(/[^a-zа-я0-9]+/gi,"-")}
+// A-дни PPL сохраняют прежние ключи истории; меняются только подписи.
+const PROGRAM_LAYOUTS={
+  ppl:[
+    ["Жим A","Жим",["chestPress:наклонной","chestPress:горизонтально","side:0","triceps:0","core:0","fly:верх-низ"]],
+    ["Тяга A","Тяга",["vertical:0","row:горизонтальная","biceps:0","rear:0","pullover:0","core:1"]],
+    ["Ноги A","Ноги",["legs:жим ногами","ham:0","hinge:0","calf:0","core:1","hips:0"]],
+    ["Жим B","Жим B",["chestPress:горизонтально","shoulder:0","side:1","triceps:0","fly:снизу","core:0"]],
+    ["Тяга B","Тяга B",["row:гантели","vertical:0","rear:0","biceps:0","core:0","pullover:0"]],
+    ["Ноги B","Ноги B",["legs:жим ногами","hinge:0","ham:0","calf:0","core:0","extension:0"]]
+  ],
+  upperlower:[
+    ["Верх A","Верх A",["chestPress:наклонной","row:горизонтальная","vertical:0","side:0","triceps:0","biceps:0"]],
+    ["Низ A","Низ A",["legs:жим ногами","ham:0","hinge:0","calf:0","core:0","extension:0"]],
+    ["Верх B","Верх B",["vertical:0","chestPress:горизонтально","row:гантели","shoulder:0","biceps:0","rear:0"]],
+    ["Низ B","Низ B",["hinge:0","legs:жим ногами","ham:0","calf:0","core:1","hips:0"]]
+  ],
+  fullbody:[
+    ["Всё тело A","Всё тело A",["legs:жим ногами","chestPress:наклонной","vertical:0","ham:0","side:0","core:0"]],
+    ["Всё тело B","Всё тело B",["hinge:0","chestPress:горизонтально","row:горизонтальная","extension:0","triceps:0","calf:0"]],
+    ["Всё тело C","Всё тело C",["legs:жим ногами","chestPress:горизонтально","row:гантели","ham:0","biceps:0","rear:0"]]
+  ]
+};
+let programPool=[];
+function exerciseGroup(name){
+  const n=name.toLowerCase().replace(/ё/g,"е");
+  if(/задняя дельта|лучник/.test(n))return "rear";
+  if(/средняя|мах.*боком|боков/.test(n))return "side";
+  if(/жим.*плеч/.test(n))return "shoulder";
+  if(/вертикальн/.test(n))return "vertical";
+  if(/горизонтальн.*тяг|тяга гантели|тяга.*наклонной/.test(n))return "row";
+  if(/пуловер/.test(n))return "pullover";
+  if(/бицепс/.test(n))return "biceps";
+  if(/трицепс/.test(n))return "triceps";
+  if(/жим ногами|присед|выпад/.test(n))return "legs";
+  if(/разгибание ног|квадр/.test(n))return "extension";
+  if(/зпб|сгибание ног|сгибание одной ноги/.test(n))return "ham";
+  if(/гиперэкст|румын|становая|ягодичн.*мост/.test(n))return "hinge";
+  if(/икр|носки/.test(n))return "calf";
+  if(/отведение бедра|приведение бедра/.test(n))return "hips";
+  if(/пресс|планк/.test(n))return "core";
+  if(/кроссовер|сведения|бабочка/.test(n))return "fly";
+  if(/жим|брусья/.test(n))return "chestPress";
+  return "other";
+}
+function programOptions(id){return (custom.programOptions||{})[id]||{volume:"standard",choices:{}}}
+function compactDays(id,volume){
+  const options=programOptions(id),limit=volume==="short"?5:6;
+  return (PROGRAM_LAYOUTS[id]||[]).map(([name,legacy,slots])=>{
+    const dayId=programDayId(id,legacy),used=new Set(),out=[],choices=(options.choices||{})[dayId]||{};
+    slots.slice(0,limit).forEach((spec,slot)=>{
+      const [group,preference]=spec.split(":"),candidates=programPool.filter(x=>x.group===group&&!used.has(x.name));
+      let source=candidates.find(x=>x.name===choices[slot]);
+      if(!source&&/^\d+$/.test(preference))source=candidates[+preference%candidates.length];
+      if(!source)source=candidates.find(x=>x.name.toLowerCase().replace(/ё/g,"е").includes(preference));
+      if(!source)source=candidates[0];
+      if(!source)return;
+      used.add(source.name);const ex=programCopy(source);
+      ex.n=volume==="short"?(slot<2?3:2):(slot<4?3:2);
+      ex.scheme=String(ex.scheme||"3×12").replace(/^\d+/,String(ex.n));
+      ex.programSlot=slot;out.push(ex);
+    });
+    return {id:dayId,name,short:name,program:true,ex:out,templateSlots:slots.slice(0,limit)};
+  });
+}
+function applyTrainingProgram(){
+  const seen=new Map();programPool=[];
+  DAYS.slice(0,3).forEach((d,i)=>d.ex.forEach(ex=>{
+    if(((custom.hidden||{})[String(i)]||[]).includes(ex.name))return;
+    if(seen.has(ex.name)){const existing=seen.get(ex.name);ex.vars.forEach(v=>{if(!existing.vars.some(x=>x.name===v.name))existing.vars.push(programCopy(v))});return}
+    const copy=programCopy(ex);copy.sourceDay=String(i);copy.group=exerciseGroup(ex.name);
+    // Архив остаётся в локальном хранилище; точные варианты упражнений доступны в новых днях.
+    HIST.forEach(r=>(r.items||[]).filter(it=>it.name===ex.name&&it.v).forEach(it=>{if(!copy.vars.some(v=>v.name===it.v))copy.vars.push({name:it.v,w:[0],mine:true})}));
+    programPool.push(copy);seen.set(ex.name,copy);
+  }));
+  const id=custom.program||"classic";if(!PROGRAM_LAYOUTS[id])return;
+  const extras=DAYS.filter(d=>d.temp);DAYS=[...compactDays(id,programOptions(id).volume),...extras];
+}
 function applyProgramOverrides(){if(!custom.program||custom.program==="classic")return;
-Object.keys(custom.ex||{}).forEach(k=>{const d=dIdx(k);if(d<0)return;(custom.ex[k]||[]).forEach(x=>{const o=normEx(x,true);if(!DAYS[d].ex.some(q=>q.name===o.name))DAYS[d].ex.unshift(o)})});
-Object.keys(custom.schemes||{}).forEach(k=>{const i=k.indexOf("|"),d=dIdx(k.slice(0,i));if(d<0)return;const ex=DAYS[d].ex.find(q=>q.name===k.slice(i+1));if(ex){ex.scheme=custom.schemes[k].s;ex.n=custom.schemes[k].n||parseInt(ex.scheme)||3}});
-Object.keys(custom.order||{}).forEach(k=>{const d=dIdx(k);if(d<0)return;const by={};DAYS[d].ex.forEach(x=>by[x.name]=x);const out=[];(custom.order[k]||[]).forEach(n=>{if(by[n]){out.push(by[n]);delete by[n]}});DAYS[d].ex.forEach(x=>{if(by[x.name])out.push(x)});DAYS[d].ex=out});
-Object.keys(custom.vars||{}).forEach(k=>{const p=k.split("||"),d=dIdx(p[0]);if(d<0||p.length<2)return;const ex=DAYS[d].ex.find(x=>x.name===p[1]);if(!ex)return;(custom.vars[k]||[]).forEach(v=>{const o=normVar(v,true);if(!ex.vars.some(q=>q.name===o.name))ex.vars.push(o)})})}
-let pendingProgram="classic";
-function showPrograms(){pendingProgram=custom.program||"classic";renderPrograms()}
-function renderPrograms(){const active=custom.program||"classic";const cards=PROGRAMS.map(p=>"<button class='program-card "+(pendingProgram===p.id?"selected":"")+"' onclick=\"chooseProgram('"+p.id+"')\"><div class='program-top'><b>"+p.name+"</b><span class='program-badge'>"+(active===p.id?"ТЕКУЩАЯ":pendingProgram===p.id?"ВЫБРАНА":p.tag)+"</span></div><div class='program-meta'>"+p.days+"</div><div class='program-desc'>"+p.desc+"</div>"+(p.id==="upperlower"?"<div class='program-note'>4 тренировки по кругу</div>":"")+"</button>").join("");const action=pendingProgram===active?"<button class='program-action' disabled>Эта программа уже активна</button>":"<button class='program-action' onclick=\"activateProgram()\">Выбрать программу</button>";openModal("Программы тренировок","<div class='program-grid'>"+cards+"<div class='mnote'>Упражнения, история и веса сохраняются. У каждой схемы свои дни и подходы.</div>"+action+"</div>")}
-function chooseProgram(id){if(!PROGRAMS.some(p=>p.id===id))return;pendingProgram=id;renderPrograms()}
-function activateProgram(){if(pendingProgram)setProgram(pendingProgram)}
-async function setProgram(id){if(workoutSaving){toast("Дождись сохранения тренировки");return}if(!PROGRAMS.some(p=>p.id===id))return;const old=custom.program||"classic";if(old===id){closeModal();return}const oldDay=day;day=0;custom.program=id;saveCustom();appStore.setItem(P+"current",JSON.stringify({state,gym,day}));try{await appStore.flush()}catch(e){custom.program=old;day=oldDay;saveCustom();toast("Не удалось сохранить программу");return}applyCustom();closeModal();draw();save(true);toast("Программа: "+PROGRAMS.find(p=>p.id===id).name)}
+  Object.keys(custom.ex||{}).forEach(k=>{const d=dIdx(k);if(d<0||DAYS[d].temp)return;(custom.ex[k]||[]).forEach(x=>{const o=normEx(x,true);if(!DAYS[d].ex.some(q=>q.name===o.name))DAYS[d].ex.push(o)})});
+  Object.keys(custom.schemes||{}).forEach(k=>{const i=k.indexOf("|"),d=dIdx(k.slice(0,i));if(d<0||DAYS[d].temp)return;const ex=DAYS[d].ex.find(q=>q.name===k.slice(i+1));if(ex){ex.scheme=custom.schemes[k].s;ex.n=custom.schemes[k].n||parseInt(ex.scheme)||3}});
+  Object.keys(custom.order||{}).forEach(k=>{const d=dIdx(k);if(d<0||DAYS[d].temp)return;const by=new Map(DAYS[d].ex.map(x=>[x.name,x])),out=[];(custom.order[k]||[]).forEach(n=>{if(by.has(n)){out.push(by.get(n));by.delete(n)}});out.push(...by.values());DAYS[d].ex=out});
+  Object.keys(custom.vars||{}).forEach(k=>{const p=k.split("||"),d=dIdx(p[0]);if(d<0||p.length<2||DAYS[d].temp)return;const ex=DAYS[d].ex.find(x=>x.name===p[1]);if(!ex)return;(custom.vars[k]||[]).forEach(v=>{const o=normVar(v,true);if(!ex.vars.some(q=>q.name===o.name))ex.vars.push(o)})});
+}
+function rememberProgramDay(){if(DAYS[day]&&!DAYS[day].temp){custom.programCursors=custom.programCursors||{};custom.programCursors[custom.program||"classic"]=dk(day)}}
+function nextCycleDay(from){const cycle=DAYS.map((d,i)=>({d,i})).filter(x=>x.d.program&&!x.d.temp),pos=cycle.findIndex(x=>x.i===from);return pos<0?null:cycle[(pos+1)%cycle.length]}
+function currentEnvelope(){return {state,gym,day,dayKey:DAYS[day]?dk(day):null,program:custom.program||"classic"}}
+function restoreCurrent(o){
+  state=o.state||{};if(Number.isInteger(o.gym)&&o.gym>=0&&o.gym<GYMS.length)gym=o.gym;
+  let found=o.dayKey?dIdx(o.dayKey):-1;
+  if(found<0&&custom.program==="ppl"&&!o.dayKey&&o.day>=3){const temp=(custom.temp||[])[o.day-3];if(temp)found=dIdx(temp.id)}
+  if(found<0&&Number.isInteger(o.day)&&o.day>=0&&o.day<DAYS.length)found=o.day;
+  day=found>=0?found:0;
+}
+let pendingProgram="classic",pendingVolume="standard";
+function showPrograms(){pendingProgram=custom.program||"classic";pendingVolume=programOptions(pendingProgram).volume||"standard";renderPrograms()}
+function renderPrograms(){
+  const active=custom.program||"classic";
+  const cards=PROGRAMS.map(p=>'<button class="program-card '+(pendingProgram===p.id?'selected':'')+'" onclick="chooseProgram(\''+p.id+'\')"><div class="program-top"><b>'+p.name+'</b><span class="program-badge">'+(active===p.id?'ТЕКУЩАЯ':p.tag)+'</span></div><div class="program-meta">'+p.days+'</div><div class="program-desc">'+p.desc+'</div></button>').join('');
+  const plan=pendingProgram!=="classic"?compactDays(pendingProgram,pendingVolume):[];
+  const modes=plan.length?'<div class="mgroup">Объём тренировки</div><div class="volume-options"><button class="volume-option '+(pendingVolume==='short'?'selected':'')+'" onclick="chooseVolume(\'short\')"><b>Короткая</b><small>До 5 упражнений · 12 подходов</small></button><button class="volume-option '+(pendingVolume==='standard'?'selected':'')+'" onclick="chooseVolume(\'standard\')"><b>Обычная</b><small>До 6 упражнений · 16 подходов</small></button></div><div class="mnote">Рабочие подходы; разминка отдельно. Упражнения можно заменить после выбора программы.</div>':'';
+  const preview=plan.map(d=>'<details class="plan-day"><summary>'+h(d.name)+'<small>'+d.ex.length+' упр. · '+d.ex.reduce((n,x)=>n+x.n,0)+' подх.</small></summary><ol>'+d.ex.map(x=>'<li>'+h(x.name)+' <span>'+h(x.scheme)+'</span></li>').join('')+'</ol></details>').join('');
+  const cursor=(custom.programCursors||{})[pendingProgram],start=Math.max(0,plan.findIndex(d=>d.id===cursor));
+  const upcoming=plan.length?'<div class="mgroup">Ближайшие 6 посещений</div><div class="cycle-preview">'+Array.from({length:6},(_,i)=>'<span><small>'+(i+1)+'</small>'+h(plan[(start+i)%plan.length].name)+'</span>').join('')+'</div>':'';
+  openModal('Программы тренировок','<div class="mnote">3 посещения в неделю. День меняется только после завершения тренировки.</div><div class="program-grid">'+cards+'</div>'+modes+upcoming+preview+'<button class="program-action" onclick="activateProgram()">'+(pendingProgram===active?'Применить настройки':'Выбрать программу')+'</button>');
+}
+function chooseProgram(id){if(!PROGRAMS.some(p=>p.id===id))return;pendingProgram=id;pendingVolume=programOptions(id).volume||"standard";renderPrograms()}
+function chooseVolume(v){if(v!=="short"&&v!=="standard")return;pendingVolume=v;renderPrograms()}
+async function activateProgram(){await setProgram(pendingProgram,pendingVolume)}
+async function setProgram(id,volume){
+  if(workoutSaving){toast("Дождись сохранения тренировки");return}if(!PROGRAMS.some(p=>p.id===id))return;
+  rememberProgramDay();const prev=programCopy(custom),oldDay=day,old=id===custom.program;
+  custom.programOptions=custom.programOptions||{};
+  if(id!=="classic")custom.programOptions[id]={...programOptions(id),volume:volume||programOptions(id).volume||"standard"};
+  custom.program=id;applyCustom();const remembered=(custom.programCursors||{})[id],idx=remembered?dIdx(remembered):-1;day=idx>=0?idx:0;
+  try{appStore.setItem(P+"custom",JSON.stringify(custom));appStore.setItem(P+"current",JSON.stringify(currentEnvelope()));await appStore.flush()}
+  catch(e){custom=prev;applyCustom();day=oldDay;saveCustom();toast("Настройки не сохранены — попробуй ещё раз");return}
+  closeModal();draw();toast(old?"Настройки программы сохранены":"Программа: "+PROGRAMS.find(p=>p.id===id).name);
+}
+let dayChoiceDraft=null;
+function configureProgramDay(){
+  const d=DAYS[day];if(!d||!d.program)return;
+  const id=custom.program,options=programOptions(id);dayChoiceDraft={id,dayId:dk(day),choices:{...((options.choices||{})[dk(day)]||{})}};
+  const rows=d.templateSlots.map((spec,slot)=>{const group=spec.split(':')[0],current=d.ex.find(x=>x.programSlot===slot),candidates=programPool.filter(x=>x.group===group);
+    if(!candidates.length)return '<div class="mnote">Для позиции '+(slot+1)+' нет доступного упражнения в твоём сплите.</div>';
+    if(current)dayChoiceDraft.choices[slot]=current.name;
+    return '<label class="exercise-choice"><span>Упражнение '+(slot+1)+'</span><select class="minput" data-slot="'+slot+'" onchange="dayChoiceDraft.choices['+slot+']=this.value">'+candidates.map(x=>'<option '+(current&&x.name===current.name?'selected':'')+' value="'+h(x.name)+'">'+h(x.name)+'</option>').join('')+'</select></label>';
+  }).join('');
+  openModal('Настроить '+h(d.name),'<div class="mnote">Выбирай альтернативы из своих упражнений. Вариант тренажёра и вес настраиваются в карточке упражнения.</div>'+rows+'<button class="program-action" onclick="saveProgramChoices()">Сохранить выбор</button>');
+}
+async function saveProgramChoices(){
+  if(!dayChoiceDraft||workoutSaving)return;const q=dayChoiceDraft,names=Object.values(q.choices);
+  if(new Set(names).size!==names.length){toast("Выбери разные упражнения для каждой позиции");return}
+  custom.programOptions=custom.programOptions||{};const opt=programCopy(programOptions(q.id));opt.choices=opt.choices||{};opt.choices[q.dayId]=q.choices;custom.programOptions[q.id]=opt;
+  applyCustom();day=dIdx(q.dayId);rememberProgramDay();clearTimeout(sv);saveCustom();appStore.setItem(P+"current",JSON.stringify(currentEnvelope()));
+  try{await appStore.flush()}catch(e){toast("Не удалось сохранить выбор");return}dayChoiceDraft=null;closeModal();draw();toast("Упражнения обновлены");
+}
+async function saveProgress(){
+  if(workoutSaving)return;rememberProgramDay();clearTimeout(sv);
+  try{appStore.setItem(P+"current",JSON.stringify(currentEnvelope()));appStore.setItem(P+"custom",JSON.stringify(custom));await appStore.flush();toast("Прогресс сохранён · текущий день остаётся")}
+  catch(e){toast("Не удалось сохранить прогресс — попробуй ещё раз")}
+}
 
 /* ── веса, единицы, тип ── */
 function wKey(d,e,vi,g){ const ex=exAt(d,e), v=ex.vars[vi]; return dk(d)+"||"+ex.name+"||"+(v?v.name:"#"+vi)+"||"+g; }
@@ -396,14 +534,21 @@ function wSet(d,e,vi,g,val){ custom.w=custom.w||{}; custom.w[wKey(d,e,vi,g)]=val
 function cur(d,e){
   const ex=exAt(d,e), k=key(d,e);
   let st=state[k];
-  if(!st) st=state[k]={v:0, vn:ex.vars[0].name, sets:[]};
+  if(!st){
+    let vn=ex.vars[0].name;
+    if(DAYS[d].program)vn=preferredProgramVariant(ex,gym);
+    st=state[k]={v:0,vn,sets:[],autoVariant:!!DAYS[d].program,gymContext:GYMS[gym]};
+  }
+  if(st.autoVariant&&st.gymContext!==GYMS[gym]&&!(st.sets||[]).some(s=>s.w||s.r||s.t||s.done)){
+    st.vn=preferredProgramVariant(ex,gym);st.gymContext=GYMS[gym];
+  }
   if(st.vn){ const i=ex.vars.findIndex(v=>v.name===st.vn); st.v=i>=0?i:0; }
   if(!(st.v>=0 && st.v<ex.vars.length)) st.v=0;
   st.vn=ex.vars[st.v].name;
   st.sets=st.sets||[];
   const n=effN(ex);
-  while(st.sets.length<n) st.sets.push({w:"",r:"",t:"",done:false});
-  if(st.sets.length>n) st.sets.length=n;
+  while(st.sets.length<n) st.sets.push(st.extraSets&&st.extraSets.length?st.extraSets.shift():{w:"",r:"",t:"",done:false});
+  if(st.sets.length>n){st.extraSets=st.sets.slice(n).concat(st.extraSets||[]);st.sets=st.sets.slice(0,n)}
   return st;
 }
 /* ── рабочий вес по залу: берём из того, что реально делал в ЭТОМ зале ── */
@@ -483,9 +628,17 @@ function probeFor(d,e){
 }
 function uKey(d,e,vi){ const ex=exAt(d,e); return dk(d)+"||"+ex.name+"||"+((ex.vars[vi]||{}).name||""); }
 function defUnit(vn){ return (T.handRe||/гантел/i).test(vn||"") ? "hand" : ""; }
-function unitOf(d,e,vi){ const k=uKey(d,e,vi);
-  if(custom.unit && custom.unit[k]!=null) return custom.unit[k];
-  return defUnit((exAt(d,e).vars[vi]||{}).name); }
+function unitOf(d,e,vi){
+  const ex=exAt(d,e),vn=(ex.vars[vi]||{}).name||"",k=uKey(d,e,vi);
+  if(custom.unit&&custom.unit[k]!=null)return custom.unit[k];
+  if(DAYS[d].program){
+    const source=ex.sourceDay+"||"+ex.name+"||"+vn;
+    if(custom.unit&&custom.unit[source]!=null)return custom.unit[source];
+    const found=histItems(ex.name,vn,null),last=found.find(x=>x.rec.gym===GYMS[gym])||found[0];
+    if(last&&Object.prototype.hasOwnProperty.call(last.it,"unit"))return last.it.unit||"";
+  }
+  return defUnit(vn);
+}
 function unitLabel(u){ return u==="hand" ? "кг/рука" : u==="pair" ? "кг · пара" : "кг"; }
 function mult(u){ return u==="hand" ? 2 : 1; }
 function convW(w,from,to){ if(from===to) return w; if(from==="hand"&&to==="pair") return w*2; if(from==="pair"&&to==="hand") return w/2; return w; }
@@ -595,7 +748,11 @@ function drawHeader(){
   $("#gymPicker").open=false;
   $("#dayTitle").textContent=DAYS[day]?DAYS[day].name:"Тренировка";
   const hid=hiddenList(day).length;
-  $("#daySub").textContent=DAYS[day]?DAYS[day].ex.filter(x=>!isHidden(day,x.name)).length+" упражнений"+(hid?" · скрыто "+hid:""):"";
+  const visible=DAYS[day]?DAYS[day].ex.filter(x=>!isHidden(day,x.name)):[];
+  $("#daySub").textContent=visible.length+" упражнений · "+visible.reduce((n,x)=>n+effN(x),0)+" подходов"+(hid?" · скрыто "+hid:"");
+  const next=nextCycleDay(day);
+  $("#cycleToolbar").innerHTML=DAYS[day].program?'<div class="cycle-toolbar"><small>После завершения: '+h(next.d.name)+'</small><button onclick="configureProgramDay()">Настроить день</button></div>':DAYS[day].temp?'<div class="mnote">Разовая тренировка не сдвигает цикл программы.</div>':'';
+  $("#saveBtn").textContent=DAYS[day].program?"Завершить тренировку":"Сохранить тренировку";
 }
 document.addEventListener("click",e=>{const p=$("#gymPicker");if(p&&!p.contains(e.target))p.open=false});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){const p=$("#gymPicker");if(p)p.open=false;closeModal()}});
@@ -745,9 +902,9 @@ function drawStat(){
 function draw(){ drawHeader(); drawList(); }
 
 /* ── действия ── */
-function setDay(i){ if(workoutSaving){toast("Дождись сохранения тренировки");return;} day=i; closeModal(); hideHist(); draw(); save(true); window.scrollTo(0,0); }
+function setDay(i){ if(workoutSaving){toast("Дождись сохранения тренировки");return;} if(!DAYS[i])return;day=i;rememberProgramDay();saveCustom();closeModal(); hideHist(); draw(); save(true); window.scrollTo(0,0); }
 function setGym(i){ if(workoutSaving){toast("Дождись сохранения тренировки");return;} gym=i; draw(); save(true); }
-function setVar(e,v){ if(workoutSaving)return; const st=cur(day,e); st.v=+v; st.vn=exAt(day,e).vars[+v].name; drawList(); save(true); }
+function setVar(e,v){ if(workoutSaving)return; const st=cur(day,e); st.autoVariant=false;st.gymContext=GYMS[gym];st.v=+v; st.vn=exAt(day,e).vars[+v].name; drawList(); save(true); }
 function upd(e,i,f,val){ if(workoutSaving)return; cur(day,e).sets[i][f]=val; drawStat(); save(true); }
 function tog(e,i){
   if(workoutSaving)return;
@@ -1198,17 +1355,18 @@ function toast(m){ const el=$("#toast"); el.textContent=m; el.classList.add("sho
   clearTimeout(tm); tm=setTimeout(()=>el.classList.remove("show"),2200); }
 function save(silent){
   clearTimeout(sv);
-  sv=setTimeout(()=>{ try{ appStore.setItem(P+"current", JSON.stringify({state,gym,day})); if(!silent) toast("Сохранено"); }catch(e){} }, silent?400:0);
+  sv=setTimeout(()=>{ try{ appStore.setItem(P+"current", JSON.stringify(currentEnvelope())); if(!silent) toast("Сохранено"); }catch(e){} }, silent?400:0);
 }
 async function saveWorkout(){
   const now=Date.now();
   if(workoutSaving || now<saveCooldown) return;
   workoutSaving=true;
-  const btn=$("#saveBtn"); if(btn) btn.disabled=true;
+  const btn=$("#saveBtn"); if(btn) btn.disabled=true; const draftBtn=$(".draft-save");if(draftBtn)draftBtn.disabled=true;
   try{
-    const savedDay=day, savedGym=gym, stamp=localDate(), dkey=dk(savedDay);
+    const savedDay=day, savedGym=gym, stamp=localDate(), dkey=dk(savedDay), next=nextCycleDay(savedDay);
     const items=[];
     DAYS[savedDay].ex.forEach((ex,e)=>{
+      if(isHidden(savedDay,ex.name))return;
       const st=cur(savedDay,e), vi=st.v, time=isTime(savedDay,e,vi);
       let sets;
       if(time) sets=st.sets.filter(s=>num(s.t)>0).map(s=>({t:String(num(s.t)<=10?Math.round(num(s.t)*60):num(s.t))}));
@@ -1218,6 +1376,7 @@ async function saveWorkout(){
       items.push(it);
     });
     if(!items.length){ toast("Нечего записывать — заполни подходы"); return; }
+    const enteredNames=items.map(it=>it.name);
     const legacyK=P+"hist:"+stamp+":"+dkey;
     let k=null, prev=null;
     for(let i=0;i<appStore.length;i++){
@@ -1236,15 +1395,18 @@ async function saveWorkout(){
     }
     if(prev && prev.items){ if(prev.v!==4) prev=migrateRec(prev);
       prev.items.forEach(it=>{ if(!items.some(x=>x.name===it.name)) items.push(it); }); }
-    const rec={v:4, date:stamp, day:dkey, name:DAYS[savedDay].name, gym:GYMS[savedGym], items:items};
+    const completionId=Date.now().toString(36)+"-"+Math.random().toString(36).slice(2);
+    const rec={v:4,date:stamp,day:dkey,name:DAYS[savedDay].name,gym:GYMS[savedGym],items,completionId,program:custom.program||"classic",nextDayKey:next?dk(next.i):null};
+    appStore.setItem(P+"current",JSON.stringify({...currentEnvelope(),pendingCompletion:{id:completionId,dayKey:dkey,names:enteredNames}}));
+    await appStore.flush();
     if(deloadOn()) rec.deload=true;
     try{ appStore.setItem(k, JSON.stringify(rec)); await appStore.flush(); }
     catch(storeErr){ toast("Не удалось сохранить — проверь свободное место в памяти"); return; }
     saveCooldown=Date.now()+650;
-    DAYS[savedDay].ex.forEach((ex,e)=>cur(savedDay,e).sets.forEach(s=>{ s.w=""; s.r=""; s.t=""; s.done=false; }));
+    DAYS[savedDay].ex.forEach((ex,e)=>{if(!isHidden(savedDay,ex.name))cur(savedDay,e).sets.forEach(s=>{ s.w=""; s.r=""; s.t=""; s.done=false; })});
     let nextName="", cursorSaved=true;
-    if(custom.program && custom.program!=="classic" && day===savedDay && DAYS.length>1){ day=(savedDay+1)%DAYS.length; nextName=DAYS[day].name; }
-    try{appStore.setItem(P+"current",JSON.stringify({state,gym,day}));await appStore.flush()}catch(cursorErr){cursorSaved=false;try{console.warn("Тренировка записана, не удалось сохранить следующий день:",cursorErr)}catch(e){}}
+    if(next && day===savedDay){day=next.i;nextName=next.d.name;rememberProgramDay();saveCustom()}
+    try{appStore.setItem(P+"current",JSON.stringify(currentEnvelope()));await appStore.flush()}catch(cursorErr){cursorSaved=false;try{console.warn("Тренировка записана, не удалось сохранить следующий день:",cursorErr)}catch(e){}}
     try{
       stopRest(); loadHist(); draw(); window.scrollTo(0,0);
       toast(nextName?(cursorSaved?"Записано · дальше: "+nextName:"Записано · следующий день не сохранён"):"Записано · тоннаж "+Math.round(recTon(rec))+" кг");
@@ -1257,6 +1419,7 @@ async function saveWorkout(){
     toast("Не удалось сохранить — попробуй ещё раз");
   }finally{
     workoutSaving=false;
+    if(draftBtn)draftBtn.disabled=false;
     const wait=Math.max(0,saveCooldown-Date.now());
     const current=$("#saveBtn"); if(current) current.disabled=wait>0;
     if(wait>0) setTimeout(()=>{const b=$("#saveBtn");if(b)b.disabled=false;},wait);
@@ -1312,7 +1475,8 @@ function weeksHTML(){
 }
 function showHist(){
   const dkey=dk(day), box=$("#hist");
-  const H=HIST.filter(r=>r.day===dkey && (histGym==="*" || r.gym===histGym));
+  const names=new Set(DAYS[day].ex.map(x=>x.name));
+  const H=HIST.filter(r=>(histGym==="*"||r.gym===histGym)&&(DAYS[day].program?(r.items||[]).some(it=>names.has(it.name)):r.day===dkey)).map(r=>DAYS[day].program?{...r,items:r.items.filter(it=>names.has(it.name))}:r);
   const gymsIn=[...new Set(HIST.map(r=>r.gym).filter(Boolean))];
   const chips=`<div class="hchips"><button class="gym ${histGym==="*"?'on':''}" onclick="__hg('*')">Все залы</button>`
     + gymsIn.map(g=>`<button class="gym ${histGym===g?'on':''}" onclick="__hg('${esc(g)}')">${h(g)}</button>`).join("")+`</div>`;
@@ -1355,7 +1519,7 @@ function markExported(){ custom.lastExport=new Date().toISOString(); saveCustom(
 function dumpObj(){
   const hist={};
   for(let i=0;i<appStore.length;i++){ const k=appStore.key(i); if(k && k.indexOf(P+"hist:")===0) hist[k]=appStore.getItem(k); }
-  return {v:4, app:P, saved:new Date().toISOString(), state, custom, gyms:GYMS, hist};
+  return {v:4, app:P, saved:new Date().toISOString(), state, custom, gyms:GYMS, hist, current:{gym,day,dayKey:dk(day),program:custom.program||"classic"}};
 }
 function exportData(){
   const text=JSON.stringify(dumpObj());
@@ -1396,7 +1560,19 @@ function showTextImport(){
 let pendingImport=null;
 function historyPlan(o){const entries=[],existing=[];for(let i=0;i<appStore.length;i++){const k=appStore.key(i);if(k&&k.indexOf(P+"hist:")===0)try{const r=JSON.parse(appStore.getItem(k));if(r&&Array.isArray(r.items))existing.push({k,r})}catch(e){}}Object.keys(o.hist||{}).forEach(k=>{try{let r=o.hist[k];if(typeof r==="string")r=JSON.parse(r);if(r&&Array.isArray(r.items)&&r.date)entries.push({key:k.indexOf(P+"hist:")===0?k:P+"hist:"+k.split("hist:").pop(),r})}catch(e){}});let add=0,merge=0,conflict=0;const plan=[];entries.forEach(x=>{const same=existing.find(y=>y.r.date===x.r.date&&String(y.r.day)===String(x.r.day)&&y.r.gym===x.r.gym);if(same){const have=new Set(same.r.items.map(i=>i.name+"||"+i.v)),missing=x.r.items.filter(i=>!have.has(i.name+"||"+i.v));if(missing.length){const merged=JSON.parse(JSON.stringify(same.r));merged.items.push(...missing);plan.push({key:same.k,rec:merged});merge++}}else{let key=x.key;if(existing.some(y=>y.k===key)){conflict++;key=x.key+":"+encodeURIComponent(x.r.gym||"")+":import";let n=1;while(existing.some(y=>y.k===key)||plan.some(y=>y.key===key))key=x.key+":"+encodeURIComponent(x.r.gym||"")+":import"+(n++)}plan.push({key,rec:x.r});existing.push({k:key,r:x.r});add++}});return{plan,add,merge,conflict,total:entries.length}}
 function applyDump(txt){try{const o=JSON.parse(txt);if(!o||typeof o!=="object"||(!o.hist&&!o.state&&!o.custom))throw Error("invalid");const review=historyPlan(o);pendingImport={o,review};const panel='<div class="mnote">Записей в файле: <b>'+review.total+'</b><br>Добавится: <b>'+review.add+'</b><br>Дополнится упражнениями: <b>'+review.merge+'</b><br>Конфликтов ключей: <b>'+review.conflict+'</b><br><br>Текущая история сохранится. Программа и настройки будут заменены данными копии.</div><div class="mrow"><button class="mitem mbtn" onclick="pendingImport=null;closeModal()">Отмена</button><button class="mitem mbtn ok" onclick="commitImport()">Продолжить</button></div>';openModal("Проверка резервной копии",panel)}catch(e){toast("Не удалось прочитать копию — проверь файл")}}
-async function commitImport(){if(!pendingImport)return;const p=pendingImport;pendingImport=null;closeModal();try{p.review.plan.forEach(x=>appStore.setItem(x.key,JSON.stringify(x.rec)));if(p.o.state)state=p.o.state;if(p.o.custom)custom=Object.assign(blankCustom(),p.o.custom);if(Array.isArray(p.o.gyms)&&p.o.gyms.length)GYMS=p.o.gyms.slice();else if(custom.gyms)GYMS=custom.gyms.slice();custom.gyms=GYMS.slice();applyCustom();if(gym>=GYMS.length)gym=0;if(day>=DAYS.length)day=0;saveCustom();appStore.setItem(P+"current",JSON.stringify({state,gym,day}));await appStore.flush();migrateV2(p.o.last||{});migrateV4();loadHist();draw();toast("Копия импортирована; история объединена")}catch(e){toast("Импорт не завершён — данные не удалены")}}
+async function commitImport(){
+  if(!pendingImport||workoutSaving)return;const p=pendingImport;pendingImport=null;closeModal();
+  try{
+    p.review.plan.forEach(x=>appStore.setItem(x.key,JSON.stringify(x.rec)));
+    if(p.o.state){const merged={...state};Object.entries(p.o.state).forEach(([k,incoming])=>{const existing=state[k],filled=existing&&[...(existing.sets||[]),...(existing.extraSets||[])].some(s=>s.w||s.r||s.t||s.done);if(!filled)merged[k]=incoming});state=merged}
+    if(p.o.custom){const previous=custom;custom=Object.assign(blankCustom(),p.o.custom);["program","programOptions","programCursors"].forEach(k=>{if(!Object.prototype.hasOwnProperty.call(p.o.custom,k)&&previous[k]!=null)custom[k]=previous[k]})}
+    if(Array.isArray(p.o.gyms)&&p.o.gyms.length)GYMS=p.o.gyms.slice();else if(custom.gyms)GYMS=custom.gyms.slice();custom.gyms=GYMS.slice();
+    loadHist();applyCustom();gym=0;day=0;
+    if(p.o.current)restoreCurrent({...p.o.current,state});else{const next=(custom.programCursors||{})[custom.program||"classic"],i=next?dIdx(next):-1;if(i>=0)day=i}
+    clearTimeout(sv);saveCustom();appStore.setItem(P+"current",JSON.stringify(currentEnvelope()));await appStore.flush();migrateV2(p.o.last||{});migrateV4();loadHist();applyCustom();draw();toast("Копия импортирована; история и веса подключены");
+  }catch(e){console.warn(e);toast("Импорт не завершён — данные не удалены")}
+}
+
 function importData(inp){
   const f=inp.files[0]; if(!f) return;
   const rd=new FileReader(); rd.onload=()=>applyDump(rd.result); rd.readAsText(f);
@@ -1489,16 +1665,22 @@ window.onerror=function(m){ try{ console.warn("Перехвачено:", m); }ca
   if(custom.restEx==null) custom.restEx=180;
   if(!custom.restSig) custom.restSig="flash";
   applyCustom();
-  try{ const r=appStore.getItem(P+"current");
-    if(r){ const o=JSON.parse(r); state=o.state||{};
-      if(typeof o.gym==="number" && o.gym<GYMS.length) gym=o.gym;
-      if(typeof o.day==="number" && o.day<DAYS.length) day=o.day; } }catch(e){}
+  let pendingRecovery=null;
+  try{const raw=appStore.getItem(P+"current");if(raw){const o=JSON.parse(raw);restoreCurrent(o);pendingRecovery=o.pendingCompletion||null}}catch(e){}
   migrateV2(); migrateV4();
-  loadHist();
+  loadHist();applyCustom();
+  if(pendingRecovery){
+    const rec=HIST.find(r=>r.completionId===pendingRecovery.id);
+    if(rec){
+      (pendingRecovery.names||rec.items.map(it=>it.name)).forEach(name=>{const st=state[pendingRecovery.dayKey+"||"+name];if(st)(st.sets||[]).forEach(s=>{s.w="";s.r="";s.t="";s.done=false})});
+      if(rec.program===(custom.program||"classic")&&rec.nextDayKey){const idx=dIdx(rec.nextDayKey);if(idx>=0){day=idx;rememberProgramDay();saveCustom()}}
+      appStore.setItem(P+"current",JSON.stringify(currentEnvelope()));await appStore.flush();
+    }
+  }
   try{ draw(); }catch(err){ $("#list").innerHTML='<div style="padding:20px;color:#C8102E">Ошибка: '+h(err.message)+'</div>'; }
   $("#saveBtn").onclick=saveWorkout;
   $("#rest").onclick=stopRest;
-})();
+})().catch(err=>{console.error(err);$("#list").innerHTML='<div class="mnote">Не удалось загрузить приложение: '+h(err.message)+'. Данные сайта сохранены. Перезагрузи страницу.</div>'});
 
 try{ if("serviceWorker" in navigator && location.protocol.indexOf("http")===0) navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>reg.update()).catch(()=>{}); }catch(e){}
 
