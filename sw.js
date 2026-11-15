@@ -1,4 +1,4 @@
-const CACHE = "gym-v415";
+const CACHE = "gym-v416";
 self.addEventListener("install", e => { self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(["index.html","manifest.json"])).catch(()=>{})); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys()
