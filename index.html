@@ -223,7 +223,7 @@ header{position:relative;border:0;padding:calc(20px + env(safe-area-inset-top)) 
 </head>
 <body>
 <header>
-  <div class="hero-top"><div class="brand">MYGYM<span class="release">4.16</span></div><div class="hero-actions">
+  <div class="hero-top"><div class="brand">MYGYM<span class="release">4.17</span></div><div class="hero-actions">
     <button class="icon-btn" onclick="showHist()" title="История тренировок" aria-label="История тренировок"><svg viewBox="0 0 24 24"><path d="M4 4v16h16M8 15l4-5 4 2 4-7"/></svg></button>
     <button class="icon-btn" onclick="mainMenu()" title="Меню" aria-label="Меню"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>
   </div></div>
@@ -259,7 +259,7 @@ const ready=new Promise(resolve=>{if(!window.indexedDB){fallback();resolve();ret
 function enqueue(k,v,remove){let ls=true;try{if(legacy){if(remove)legacy.removeItem(k);else legacy.setItem(k,String(v))}}catch(e){ls=false}if(!db){if(!ls)lastError=Error("Не удалось сохранить данные");return}queue=queue.then(()=>remove?new Promise((resolve,reject)=>{const t=db.transaction("kv","readwrite");t.objectStore("kv").delete(k);t.oncomplete=resolve;t.onerror=()=>reject(t.error)}):put(k,v)).then(()=>{lastError=null}).catch(e=>{if(!ls)lastError=e;if(db){try{db.close()}catch(x){}db=null;mode=ls?"localStorage fallback":"ошибка хранения"}})}
 return{ready,flush:async()=>{await ready;await queue;if(lastError)throw lastError},getItem:k=>mem.has(String(k))?mem.get(String(k)):(()=>{try{return legacy?legacy.getItem(k):null}catch(e){return null}})(),setItem:(k,v)=>{k=String(k);v=String(v);mem.set(k,v);enqueue(k,v,false)},removeItem:k=>{k=String(k);mem.delete(k);enqueue(k,null,true)},key:i=>[...mem.keys()][i]??(legacy?legacy.key(i):null),get length(){return mem.size},get mode(){return mode}}})();
 const T = {
-  kind:"his", prefix:"gym:", appv:"4.16", file:"trenirovki",
+  kind:"his", prefix:"gym:", appv:"4.17", file:"trenirovki",
   gyms:["Грисмолл","Весна","Нежинская"], accent:"#C8102E", lastPlus:false, seedId:"2026-11-09-v48",
   handRe:/гантел|махи боком/i,
   /* разовая правка старых записей: какой вариант делал и где вес был записан за пару */
@@ -401,14 +401,14 @@ const PROGRAM_LAYOUTS={
     ["Ноги B","Ноги B",LOWER_B]
   ],
   upperlower:[
-    ["Верх A","Верх A",[INCLINE,"vertical:Вертикальная тяга|Верт. тяга широким хватом",ROW,"side:Средняя дельта","rear:Задняя дельта",ARM_BI,ARM_TRI,"fly:Кроссовер верх-низ"]],
+    ["Верх A","Верх A",[INCLINE,"vertical:Вертикальная тяга|Верт. тяга широким хватом",ROW,"side:Средняя дельта","rear:Задняя дельта",ARM_BI,ARM_TRI,"fly:Кроссовер верх-низ","core:Пресс"]],
     ["Низ A","Низ A",LOWER_A],
-    ["Верх B","Верх B",[FLAT,"fly:Кроссовер / сведения",INCLINE_ROW,"shoulder:Жим в тренажёре на плечи|Жим в тренажёре на плечи","side:Махи боком на наклонной|Махи боком на наклонной",ARM_BI,ARM_TRI,"vertical:Вертикальная тяга|Верт. тяга в тренажёре"]],
+    ["Верх B","Верх B",[FLAT,"fly:Кроссовер / сведения",INCLINE_ROW,"shoulder:Жим в тренажёре на плечи|Жим в тренажёре на плечи","side:Махи боком на наклонной|Махи боком на наклонной",ARM_BI,ARM_TRI,"vertical:Вертикальная тяга|Верт. тяга в тренажёре","core:Пресс"]],
     ["Низ B","Низ B",LOWER_B]
   ],
   fullbody:[
     ["Всё тело A","Всё тело A",["legs:Жим ногами|Жим ногами широким хватом",INCLINE,"vertical:Вертикальная тяга|Верт. тяга широким хватом","ham:ЗПБ|Сгибание одной ногой","side:Средняя дельта",ARM_BI,"core:Пресс","pullover:Пуловер в кроссовере"]],
-    ["Всё тело B","Всё тело B",[FLAT,ROW,"extension:Разгибание ног","hinge:Гиперэкстензия","rear:Задняя дельта",ARM_TRI,"calf:Икры","vertical:Вертикальная тяга|Верт. тяга узким хватом","shoulder:Жим в тренажёре на плечи|Жим в тренажёре на плечи"]],
+    ["Всё тело B","Всё тело B",[FLAT,ROW,"extension:Разгибание ног","hinge:Гиперэкстензия","rear:Задняя дельта",ARM_TRI,"calf:Икры","vertical:Вертикальная тяга|Верт. тяга узким хватом","shoulder:Жим в тренажёре на плечи|Жим в тренажёре на плечи","core:Пресс"]],
     ["Всё тело C","Всё тело C",["legs:Жим ногами|Жим ногами узким хватом (квадры)","fly:Кроссовер / сведения",INCLINE_ROW,"ham:ЗПБ|Сгибание ног сидя","side:Махи боком на наклонной|Махи боком на наклонной","calf:Икры","core:Пресс","chestPress:Жим сведенными гантелями на наклонной|Жим сведенными гантелями на наклонной"]]
   ]
 };
@@ -442,6 +442,23 @@ function programOptions(id){
 }
 function programVariantDraftFilled(st){return !!st&&[...(st.sets||[]),...(st.extraSets||[])].some(s=>s.w||s.r||s.t||s.done)}
 function planScheme(ex,n){return n+"×"+(isTimeName(ex.name)?"0:30–1:00 мин":['chestPress','vertical','row','legs','shoulder'].includes(ex.group)?"8–12":"10–15")}
+// В новых программах главные многосуставные движения всегда идут первыми.
+// Сортировка стабильная и НЕ меняет индексы programSlot / ключи записанной истории.
+function programExercisePriority(ex){
+  const g=ex.group||exerciseGroup(ex.name);
+  if(g==='core')return 100;
+  if(['legs','chestPress','shoulder','vertical','row'].includes(g))return 0;
+  if(g==='hinge')return 20;
+  if(['ham','extension'].includes(g))return 40;
+  if(['fly','pullover'].includes(g))return 50;
+  if(['side','rear'].includes(g))return 60;
+  if(['biceps','triceps','calf'].includes(g))return 70;
+  return 80;
+}
+function orderProgramExercises(list){
+  return list.map((ex,i)=>({ex,i,p:programExercisePriority(ex)}))
+    .sort((a,b)=>a.p-b.p||a.i-b.i).map(x=>x.ex);
+}
 function compactDays(id,volume){
   const options=programOptions(id);
   return (PROGRAM_LAYOUTS[id]||[]).map(([name,legacy,slots])=>{
@@ -459,7 +476,7 @@ function compactDays(id,volume){
       if(variant){const v=ex.vars.find(v=>v.name===variant)||ex.vars.find(v=>v.name.toLowerCase().includes(variant.toLowerCase()));if(v)ex.defaultVariant=v.name}
       ex.programSlot=slot;out.push(ex);
     });
-    return {id:dayId,name,short:name,program:true,ex:out,templateSlots:slots};
+    return {id:dayId,name,short:name,program:true,ex:orderProgramExercises(out),templateSlots:slots};
   });
 }
 function isExcludedProgramMovement(name){return /гакк|выпад|болгарск|румынск|ягодичн.*мост|отведение.*бедра|отведение ноги|приведение бедра/i.test(String(name||""))}
@@ -482,10 +499,19 @@ function applyTrainingProgram(){
   const extras=DAYS.filter(d=>d.temp);DAYS=[...compactDays(id,programOptions(id).volume),...extras];
 }
 function applyProgramOverrides(){if(!custom.program||custom.program==="classic")return;
-  Object.keys(custom.ex||{}).forEach(k=>{const d=dIdx(k);if(d<0||DAYS[d].temp)return;(custom.ex[k]||[]).forEach(x=>{const o=normEx(x,true);if(!isExcludedProgramMovement(o.name)&&!DAYS[d].ex.some(q=>q.name===o.name))DAYS[d].ex.push(o)})});
+  Object.keys(custom.ex||{}).forEach(k=>{const d=dIdx(k);if(d<0||DAYS[d].temp)return;(custom.ex[k]||[]).forEach(x=>{
+    const o=normEx(x,true);if(isExcludedProgramMovement(o.name)||DAYS[d].ex.some(q=>q.name===o.name))return;
+    // Если пресс/планка уже добавлены вручную в этот день, не дублируем завершающее упражнение.
+    if(exerciseGroup(o.name)==='core'){
+      const ci=DAYS[d].ex.findIndex(q=>(q.group||exerciseGroup(q.name))==='core');
+      if(ci>=0){o.group='core';o.programSlot=DAYS[d].ex[ci].programSlot;DAYS[d].ex[ci]=o;return;}
+    }
+    DAYS[d].ex.push(o);
+  })});
   Object.keys(custom.schemes||{}).forEach(k=>{const i=k.indexOf("|"),d=dIdx(k.slice(0,i));if(d<0||DAYS[d].temp)return;const ex=DAYS[d].ex.find(q=>q.name===k.slice(i+1));if(ex){ex.scheme=custom.schemes[k].s;ex.n=programOptions(custom.program).volume==="short"?2:(custom.schemes[k].n||parseInt(ex.scheme)||3);ex.scheme=ex.scheme.replace(/^\d+/,String(ex.n))}});
   Object.keys(custom.order||{}).forEach(k=>{const d=dIdx(k);if(d<0||DAYS[d].temp)return;const by=new Map(DAYS[d].ex.map(x=>[x.name,x])),out=[];(custom.order[k]||[]).forEach(n=>{if(by.has(n)){out.push(by.get(n));by.delete(n)}});out.push(...by.values());DAYS[d].ex=out});
   Object.keys(custom.vars||{}).forEach(k=>{const p=k.split("||"),d=dIdx(p[0]);if(d<0||p.length<2||DAYS[d].temp)return;const ex=DAYS[d].ex.find(x=>x.name===p[1]);if(!ex)return;(custom.vars[k]||[]).forEach(v=>{const o=normVar(v,true);if(!isExcludedProgramMovement(o.name)&&!ex.vars.some(q=>q.name===o.name))ex.vars.push(o)})});
+  DAYS.forEach(d=>{if(d.program&&!d.temp)d.ex=orderProgramExercises(d.ex)});
 }
 function rememberProgramDay(){if(DAYS[day]&&!DAYS[day].temp){custom.programCursors=custom.programCursors||{};custom.programCursors[custom.program||"classic"]=dk(day)}}
 function nextCycleDay(from){const cycle=DAYS.map((d,i)=>({d,i})).filter(x=>x.d.program&&!x.d.temp),pos=cycle.findIndex(x=>x.i===from);return pos<0?null:cycle[(pos+1)%cycle.length]}
@@ -568,10 +594,12 @@ let dayChoiceDraft=null;
 function configureProgramDay(){
   const d=DAYS[day];if(!d||!d.program)return;
   const id=custom.program,options=programOptions(id);dayChoiceDraft={id,dayId:dk(day),choices:{...((options.choices||{})[dk(day)]||{})}};
-  const rows=d.templateSlots.map((spec,slot)=>{const group=spec.split(':')[0],current=d.ex.find(x=>x.programSlot===slot),candidates=programPool.filter(x=>x.group===group);
-    if(!candidates.length)return '<div class="mnote">Для позиции '+(slot+1)+' нет доступного упражнения в твоём сплите.</div>';
+  const orderedSlots=d.templateSlots.map((spec,slot)=>({spec,slot}))
+    .sort((a,b)=>programExercisePriority({group:a.spec.split(':')[0]})-programExercisePriority({group:b.spec.split(':')[0]})||a.slot-b.slot);
+  const rows=orderedSlots.map(({spec,slot},pos)=>{const group=spec.split(':')[0],current=d.ex.find(x=>x.programSlot===slot),candidates=programPool.filter(x=>x.group===group);
+    if(!candidates.length)return '<div class="mnote">Для позиции '+(pos+1)+' нет доступного упражнения в твоём сплите.</div>';
     if(current)dayChoiceDraft.choices[slot]=current.name;
-    return '<label class="exercise-choice"><span>Упражнение '+(slot+1)+'</span><select class="minput" data-slot="'+slot+'" onchange="dayChoiceDraft.choices['+slot+']=this.value">'+candidates.map(x=>'<option '+(current&&x.name===current.name?'selected':'')+' value="'+h(x.name)+'">'+h(x.name)+'</option>').join('')+'</select></label>';
+    return '<label class="exercise-choice"><span>Упражнение '+(pos+1)+'</span><select class="minput" data-slot="'+slot+'" onchange="dayChoiceDraft.choices['+slot+']=this.value">'+candidates.map(x=>'<option '+(current&&x.name===current.name?'selected':'')+' value="'+h(x.name)+'">'+h(x.name)+'</option>').join('')+'</select></label>';
   }).join('');
   openModal('Настроить '+h(d.name),'<div class="mnote">Выбирай альтернативы из своих упражнений. Вариант тренажёра и вес настраиваются в карточке упражнения.</div>'+rows+'<button class="program-action" onclick="saveProgramChoices()">Сохранить выбор</button>');
 }
@@ -1176,8 +1204,8 @@ function addFromBase(name, d){
            vars:src.vars.map(v=>({name:v.name, w:v.w.slice(), mine:true}))};
   custom.ex=custom.ex||{}; custom.ex[dk(d)]=custom.ex[dk(d)]||[];
   custom.ex[dk(d)].unshift(exOut(o));
-  DAYS[d].ex.unshift(o);
-  custom.order=custom.order||{}; custom.order[dk(d)]=DAYS[d].ex.map(x=>x.name);
+  DAYS[d].ex.unshift(o);if(DAYS[d].program&&!DAYS[d].temp)DAYS[d].ex=orderProgramExercises(DAYS[d].ex);
+  custom.order=custom.order||{};custom.order[dk(d)]=DAYS[d].ex.map(x=>x.name);
   saveCustom(); setDay(d); toast("Добавлено наверх списка");
 }
 
@@ -1235,6 +1263,9 @@ function move(e,dir){
   const L=DAYS[day].ex;
   const vis=L.map((x,i)=>i).filter(i=>!isHidden(day,L[i].name));
   const at=vis.indexOf(e), t=vis[at+dir]; if(t===undefined) return;
+  if(DAYS[day].program&&!DAYS[day].temp&&programExercisePriority(L[e])!==programExercisePriority(L[t])){
+    toast('Сначала базовые упражнения, пресс и планка — в конце');return;
+  }
   [L[e],L[t]]=[L[t],L[e]];
   custom.order=custom.order||{}; custom.order[dk(day)]=L.map(x=>x.name);
   saveCustom(); save(true); drawList();
@@ -1276,8 +1307,8 @@ function addEx(){
         const o={name:n, scheme:scheme, n:k, motto:"", mine:true, vars:[{name:n, w:arr, mine:true}]};
         custom.ex=custom.ex||{}; custom.ex[dk(day)]=custom.ex[dk(day)]||[];
         custom.ex[dk(day)].unshift(exOut(o));
-        DAYS[day].ex.unshift(o);
-        wSetMan(day,0,0,gym,w);
+        DAYS[day].ex.unshift(o);if(DAYS[day].program&&!DAYS[day].temp)DAYS[day].ex=orderProgramExercises(DAYS[day].ex);
+        wSetMan(day,DAYS[day].ex.indexOf(o),0,gym,w);
         custom.order=custom.order||{}; custom.order[dk(day)]=DAYS[day].ex.map(x=>x.name);
         saveCustom(); drawList(); toast("Добавлено наверх — двигай стрелками");
       });
